@@ -1,11 +1,11 @@
 package p455w0rd.danknull.init;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.CraftingHelper.ShapedPrimer;
-import net.minecraftforge.event.RegistryEvent;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 import p455w0rd.danknull.recipes.RecipeDankNullUpgrade;
 
 /**
@@ -13,27 +13,70 @@ import p455w0rd.danknull.recipes.RecipeDankNullUpgrade;
  */
 public class ModRecipes {
 
-    public static IRecipe upgradeDankNullToLapis = addDankNullUpgradeRecipe("redstoneToLapis", " a ", "aba", " a ", 'a', new ItemStack(ModItems.LAPIS_PANEL), 'b', new ItemStack(ModItems.REDSTONE_DANKNULL));
-    public static IRecipe upgradeDankNullToIron = addDankNullUpgradeRecipe("lapisToIron", " a ", "aba", " a ", 'a', new ItemStack(ModItems.IRON_PANEL), 'b', new ItemStack(ModItems.LAPIS_DANKNULL));
-    public static IRecipe upgradeDankNullToGold = addDankNullUpgradeRecipe("ironToGold", " a ", "aba", " a ", 'a', new ItemStack(ModItems.GOLD_PANEL), 'b', new ItemStack(ModItems.IRON_DANKNULL));
-    public static IRecipe upgradeDankNullToDiamond = addDankNullUpgradeRecipe("goldToDiamond", " a ", "aba", " a ", 'a', new ItemStack(ModItems.DIAMOND_PANEL), 'b', new ItemStack(ModItems.GOLD_DANKNULL));
-    public static IRecipe upgradeDankNullToEmerald = addDankNullUpgradeRecipe("diamondToEmerald", " a ", "aba", " a ", 'a', new ItemStack(ModItems.EMERALD_PANEL), 'b', new ItemStack(ModItems.DIAMOND_DANKNULL));
-
-    public static final IRecipe[] UPGRADE_RECIPES = { //@formatter:off
-            upgradeDankNullToLapis,
-            upgradeDankNullToIron,
-            upgradeDankNullToGold,
-            upgradeDankNullToDiamond,
-            upgradeDankNullToEmerald//@formatter:on
-    };
-
-    public static IRecipe addDankNullUpgradeRecipe(final String recipeName, final Object... params) {
-        final ShapedPrimer primer = CraftingHelper.parseShaped(params);
-        return new RecipeDankNullUpgrade(primer.input).setRegistryName(new ResourceLocation(ModGlobals.MODID, recipeName));
+    public static void init() {
+        addDankNullUpgradeRecipe(
+            " a ",
+            "aba",
+            " a ",
+            'a',
+            new ItemStack(ModItems.LAPIS_PANEL),
+            'b',
+            new ItemStack(ModItems.REDSTONE_DANKNULL));
+        addDankNullUpgradeRecipe(
+            " a ",
+            "aba",
+            " a ",
+            'a',
+            new ItemStack(ModItems.IRON_PANEL),
+            'b',
+            new ItemStack(ModItems.LAPIS_DANKNULL));
+        addDankNullUpgradeRecipe(
+            " a ",
+            "aba",
+            " a ",
+            'a',
+            new ItemStack(ModItems.GOLD_PANEL),
+            'b',
+            new ItemStack(ModItems.IRON_DANKNULL));
+        addDankNullUpgradeRecipe(
+            " a ",
+            "aba",
+            " a ",
+            'a',
+            new ItemStack(ModItems.DIAMOND_PANEL),
+            'b',
+            new ItemStack(ModItems.GOLD_DANKNULL));
+        addDankNullUpgradeRecipe(
+            " a ",
+            "aba",
+            " a ",
+            'a',
+            new ItemStack(ModItems.EMERALD_PANEL),
+            'b',
+            new ItemStack(ModItems.DIAMOND_DANKNULL));
     }
 
-    public static void register(final RegistryEvent.Register<IRecipe> event) {
-        event.getRegistry().registerAll(UPGRADE_RECIPES);
-    }
+    private static void addDankNullUpgradeRecipe(Object... params) {
+        int idx = 0;
+        String shape = "";
+        while (params[idx] instanceof String) {
+            shape += (String) params[idx];
+            idx++;
+        }
 
+        Map<Character, ItemStack> itemMap = new HashMap<Character, ItemStack>();
+        for (; idx < params.length; idx += 2) {
+            itemMap.put((Character) params[idx], (ItemStack) params[idx + 1]);
+        }
+
+        ItemStack[] input = new ItemStack[9];
+        for (int i = 0; i < shape.length(); i++) {
+            char c = shape.charAt(i);
+            if (itemMap.containsKey(c)) {
+                input[i] = itemMap.get(c);
+            }
+        }
+
+        GameRegistry.addRecipe(new RecipeDankNullUpgrade(3, 3, input));
+    }
 }

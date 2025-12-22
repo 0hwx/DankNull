@@ -1,6 +1,6 @@
 package p455w0rd.danknull.api;
 
-import net.minecraft.util.text.translation.I18n;
+import net.minecraft.util.StatCollector;
 
 /**
  * @author p455w0rd
@@ -9,11 +9,11 @@ public class DankNullItemModes {
 
     public enum ItemExtractionMode {
 
-        KEEP_ALL(Integer.MAX_VALUE, I18n.translateToLocal("dn.not_extract.desc")),
-        KEEP_1(1, I18n.translateToLocal("dn.extract_all_but.desc") + " 1"),
-        KEEP_16(16, I18n.translateToLocal("dn.extract_all_but.desc") + " 16"),
-        KEEP_64(64, I18n.translateToLocal("dn.extract_all_but.desc") + " 64"),
-        KEEP_NONE(0, I18n.translateToLocal("dn.extract_all.desc"));
+        KEEP_ALL(Integer.MAX_VALUE, StatCollector.translateToLocal("dn.not_extract.desc")),
+        KEEP_1(1, StatCollector.translateToLocal("dn.extract_all_but.desc") + " 1"),
+        KEEP_16(16, StatCollector.translateToLocal("dn.extract_all_but.desc") + " 16"),
+        KEEP_64(64, StatCollector.translateToLocal("dn.extract_all_but.desc") + " 64"),
+        KEEP_NONE(0, StatCollector.translateToLocal("dn.extract_all.desc"));
 
         public static ItemExtractionMode[] VALUES = values();
         int number = 0;
@@ -29,25 +29,29 @@ public class DankNullItemModes {
         }
 
         public String getMessage() {
-            return I18n.translateToLocal("dn.will.desc") + " " + msg + " " + I18n.translateToLocal("dn.from_slot.desc");
+            return StatCollector.translateToLocal("dn.will.desc") + " "
+                + msg
+                + " "
+                + StatCollector.translateToLocal("dn.from_slot.desc");
         }
 
         public String getTooltip() {
             if (toString().equals("KEEP_ALL")) {
-                return I18n.translateToLocal("dn.do.desc") + " " + msg;
+                return StatCollector.translateToLocal("dn.do.desc") + " " + msg;
             }
-            return msg.substring(0, 1).toUpperCase() + msg.substring(1);
+            return msg.substring(0, 1)
+                .toUpperCase() + msg.substring(1);
         }
 
     }
 
     public enum ItemPlacementMode {
 
-        KEEP_ALL(Integer.MAX_VALUE, I18n.translateToLocal("dn.not_place.desc")),
-        KEEP_1(1, I18n.translateToLocal("dn.place_all_but.desc") + " 1"),
-        KEEP_16(16, I18n.translateToLocal("dn.place_all_but.desc") + " 16"),
-        KEEP_64(64, I18n.translateToLocal("dn.place_all_but.desc") + " 64"),
-        KEEP_NONE(0, I18n.translateToLocal("dn.place_all.desc"));
+        KEEP_ALL(Integer.MAX_VALUE, StatCollector.translateToLocal("dn.not_place.desc")),
+        KEEP_1(1, StatCollector.translateToLocal("dn.place_all_but.desc") + " 1"),
+        KEEP_16(16, StatCollector.translateToLocal("dn.place_all_but.desc") + " 16"),
+        KEEP_64(64, StatCollector.translateToLocal("dn.place_all_but.desc") + " 64"),
+        KEEP_NONE(0, StatCollector.translateToLocal("dn.place_all.desc"));
 
         public static ItemPlacementMode[] VALUES = values();
         int number = 0;
@@ -63,14 +67,18 @@ public class DankNullItemModes {
         }
 
         public String getMessage() {
-            return I18n.translateToLocal("dn.will.desc") + " " + msg + " " + I18n.translateToLocal("dn.from_slot.desc");
+            return StatCollector.translateToLocal("dn.will.desc") + " "
+                + msg
+                + " "
+                + StatCollector.translateToLocal("dn.from_slot.desc");
         }
 
         public String getTooltip() {
             if (toString().equals("KEEP_ALL")) {
-                return I18n.translateToLocal("dn.do.desc") + " " + msg;
+                return StatCollector.translateToLocal("dn.do.desc") + " " + msg;
             }
-            return msg.substring(0, 1).toUpperCase() + msg.substring(1);
+            return msg.substring(0, 1)
+                .toUpperCase() + msg.substring(1);
         }
 
     }
