@@ -19,7 +19,8 @@ import p455w0rd.danknull.client.render.DankNullRenderer;
 import p455w0rd.danknull.client.render.TESRDankNullDock;
 import p455w0rd.danknull.client.render.entity.DankEntityItem;
 import p455w0rd.danknull.client.render.entity.DankRenderItem;
-import p455w0rd.danknull.items.*;
+import p455w0rd.danknull.items.ItemDankNull;
+import p455w0rd.danknull.items.ItemDankNullPanel;
 
 /**
  * @author p455w0rd

@@ -2,7 +2,9 @@ package p455w0rd.danknull.inventory;
 
 import static p455w0rd.danknull.util.DankUtils.areItemStacksEqualIgnoreSize;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

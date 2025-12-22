@@ -9,7 +9,12 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import p455w0rd.danknull.blocks.tiles.TileDankNullDock;
-import p455w0rd.danknull.init.*;
+import p455w0rd.danknull.init.ModBlocks;
+import p455w0rd.danknull.init.ModConfig;
+import p455w0rd.danknull.init.ModEvents;
+import p455w0rd.danknull.init.ModGuiHandler;
+import p455w0rd.danknull.init.ModItems;
+import p455w0rd.danknull.init.ModRecipes;
 import p455w0rd.danknull.network.NetworkHandler;
 
 public class CommonProxy {
