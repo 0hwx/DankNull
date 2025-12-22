@@ -6,8 +6,8 @@ import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraftforge.fml.client.IModGuiFactory;
-import p455w0rd.danknull.client.gui.GuiModConfig;
+
+import cpw.mods.fml.client.IModGuiFactory;
 
 /**
  * @author p455w0rd
@@ -15,24 +15,23 @@ import p455w0rd.danknull.client.gui.GuiModConfig;
  */
 public class ModGuiFactory implements IModGuiFactory {
 
-	@Override
-	public void initialize(final Minecraft minecraftInstance) {
-	}
+    @Override
+    public void initialize(final Minecraft minecraftInstance) {}
 
-	@Override
-	public boolean hasConfigGui() {
-		return true;
-	}
+    @Override
+    public Class<? extends GuiScreen> mainConfigGuiClass() {
+        return null;
+    }
 
-	@Override
-	public GuiScreen createConfigGui(final GuiScreen parentScreen) {
-		return new GuiModConfig(parentScreen);
-	}
+    @Nullable
+    @Override
+    public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
+        return null;
+    }
 
-	@Nullable
-	@Override
-	public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
-		return null;
-	}
+    @Override
+    public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
+        return null;
+    }
 
 }

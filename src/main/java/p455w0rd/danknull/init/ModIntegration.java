@@ -1,8 +1,9 @@
 package p455w0rd.danknull.init;
 
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import p455w0rd.danknull.integration.*;
-import p455w0rdslib.LibGlobals.Mods;
+import cpw.mods.fml.common.FMLCommonHandler;
+import p455w0rd.danknull.DankNull;
+import p455w0rd.danknull.integration.Mods;
+import p455w0rd.danknull.integration.WAILA;
 
 /**
  * @author p455w0rd
@@ -10,31 +11,15 @@ import p455w0rdslib.LibGlobals.Mods;
  */
 public class ModIntegration {
 
-	public static void preInit() {
-		if (Mods.TOP.isLoaded()) {
-			TOP.init();
-		}
-		else {
-			ModLogger.info(Mods.TOP.getName() + " Integation: Disabled");
-		}
-
-	}
-
-	public static void init() {
-		if (FMLCommonHandler.instance().getSide().isClient()) {
-			if (Mods.WAILA.isLoaded()) {
-				WAILA.init();
-			}
-			else {
-				ModLogger.info("Waila Integation: Disabled");
-			}
-		}
-	}
-
-	public static void postInit() {
-		if (Mods.ITEMSCROLLER.isLoaded()) {
-			ItemScroller.blackListSlots();
-		}
-	}
-
+    public static void init() {
+        if (FMLCommonHandler.instance()
+            .getSide()
+            .isClient()) {
+            if (Mods.WAILA.isLoaded()) {
+                WAILA.init();
+            } else {
+                DankNull.LOGGER.info("Waila Integation: Disabled");
+            }
+        }
+    }
 }

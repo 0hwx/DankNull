@@ -1,11 +1,25 @@
 package p455w0rd.danknull.init;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.item.Item;
-import net.minecraftforge.event.RegistryEvent;
-import p455w0rd.danknull.init.ModGlobals.DankNullTier;
+import net.minecraftforge.client.MinecraftForgeClient;
+
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.client.registry.RenderingRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import p455w0rd.danknull.api.DankNullTier;
+import p455w0rd.danknull.blocks.tiles.TileDankNullDock;
+import p455w0rd.danknull.client.render.DankNullDockRenderer;
+import p455w0rd.danknull.client.render.DankNullPanelRenderer;
+import p455w0rd.danknull.client.render.DankNullRenderer;
+import p455w0rd.danknull.client.render.TESRDankNullDock;
+import p455w0rd.danknull.client.render.entity.DankEntityItem;
+import p455w0rd.danknull.client.render.entity.DankRenderItem;
 import p455w0rd.danknull.items.*;
-import p455w0rdslib.api.client.IModelHolder;
-import p455w0rdslib.api.client.ItemRenderingRegistry;
 
 /**
  * @author p455w0rd
@@ -13,45 +27,83 @@ import p455w0rdslib.api.client.ItemRenderingRegistry;
  */
 public class ModItems {
 
-	public static final ItemDankNull REDSTONE_DANKNULL = new ItemDankNull(DankNullTier.REDSTONE);
-	public static final ItemDankNull LAPIS_DANKNULL = new ItemDankNull(DankNullTier.LAPIS);
-	public static final ItemDankNull IRON_DANKNULL = new ItemDankNull(DankNullTier.IRON);
-	public static final ItemDankNull GOLD_DANKNULL = new ItemDankNull(DankNullTier.GOLD);
-	public static final ItemDankNull DIAMOND_DANKNULL = new ItemDankNull(DankNullTier.DIAMOND);
-	public static final ItemDankNull EMERALD_DANKNULL = new ItemDankNull(DankNullTier.EMERALD);
-	public static final ItemDankNull CREATIVE_DANKNULL = new ItemDankNull(DankNullTier.CREATIVE);
+    public static ItemDankNull REDSTONE_DANKNULL;
+    public static ItemDankNull LAPIS_DANKNULL;
+    public static ItemDankNull IRON_DANKNULL;
+    public static ItemDankNull GOLD_DANKNULL;
+    public static ItemDankNull DIAMOND_DANKNULL;
+    public static ItemDankNull EMERALD_DANKNULL;
+    public static ItemDankNull CREATIVE_DANKNULL;
 
-	public static final ItemDankNullPanel REDSTONE_PANEL = new ItemDankNullPanel(DankNullTier.REDSTONE);
-	public static final ItemDankNullPanel LAPIS_PANEL = new ItemDankNullPanel(DankNullTier.LAPIS);
-	public static final ItemDankNullPanel IRON_PANEL = new ItemDankNullPanel(DankNullTier.IRON);
-	public static final ItemDankNullPanel GOLD_PANEL = new ItemDankNullPanel(DankNullTier.GOLD);
-	public static final ItemDankNullPanel DIAMOND_PANEL = new ItemDankNullPanel(DankNullTier.DIAMOND);
-	public static final ItemDankNullPanel EMERALD_PANEL = new ItemDankNullPanel(DankNullTier.EMERALD);
+    public static ItemDankNullPanel REDSTONE_PANEL;
+    public static ItemDankNullPanel LAPIS_PANEL;
+    public static ItemDankNullPanel IRON_PANEL;
+    public static ItemDankNullPanel GOLD_PANEL;
+    public static ItemDankNullPanel DIAMOND_PANEL;
+    public static ItemDankNullPanel EMERALD_PANEL;
 
-	public static final ItemBlockDankNullDock DANK_NULL_DOCK_ITEM = new ItemBlockDankNullDock();
+    public static final List<Item> ITEM_LIST = new ArrayList<Item>();
 
-	private static final Item[] ITEM_ARRAY = new Item[] {
-			//@formatter:off
-			REDSTONE_DANKNULL, LAPIS_DANKNULL, IRON_DANKNULL, GOLD_DANKNULL, DIAMOND_DANKNULL, EMERALD_DANKNULL, CREATIVE_DANKNULL,
-			REDSTONE_PANEL, LAPIS_PANEL, IRON_PANEL, GOLD_PANEL, DIAMOND_PANEL, EMERALD_PANEL,
-			DANK_NULL_DOCK_ITEM
-			//@formatter:on
-	};
+    public static void init() {
+        REDSTONE_DANKNULL = new ItemDankNull(DankNullTier.REDSTONE);
+        LAPIS_DANKNULL = new ItemDankNull(DankNullTier.LAPIS);
+        IRON_DANKNULL = new ItemDankNull(DankNullTier.IRON);
+        GOLD_DANKNULL = new ItemDankNull(DankNullTier.GOLD);
+        DIAMOND_DANKNULL = new ItemDankNull(DankNullTier.DIAMOND);
+        EMERALD_DANKNULL = new ItemDankNull(DankNullTier.EMERALD);
+        CREATIVE_DANKNULL = new ItemDankNull(DankNullTier.CREATIVE);
 
-	public static Item[] getItems() {
-		return ITEM_ARRAY;
-	}
+        REDSTONE_PANEL = new ItemDankNullPanel(DankNullTier.REDSTONE);
+        LAPIS_PANEL = new ItemDankNullPanel(DankNullTier.LAPIS);
+        IRON_PANEL = new ItemDankNullPanel(DankNullTier.IRON);
+        GOLD_PANEL = new ItemDankNullPanel(DankNullTier.GOLD);
+        DIAMOND_PANEL = new ItemDankNullPanel(DankNullTier.DIAMOND);
+        EMERALD_PANEL = new ItemDankNullPanel(DankNullTier.EMERALD);
 
-	public static void register(final RegistryEvent.Register<Item> e) {
-		e.getRegistry().registerAll(getItems());
-	}
+        registerItem(REDSTONE_DANKNULL);
+        registerItem(LAPIS_DANKNULL);
+        registerItem(IRON_DANKNULL);
+        registerItem(GOLD_DANKNULL);
+        registerItem(DIAMOND_DANKNULL);
+        registerItem(EMERALD_DANKNULL);
+        registerItem(CREATIVE_DANKNULL);
 
-	public static void registerCustomRenderedItems() {
-		for (final Item item : ITEM_ARRAY) {
-			if (item instanceof IModelHolder) {
-				ItemRenderingRegistry.registerCustomRenderingItem((IModelHolder) item);
-			}
-		}
-	}
+        registerItem(REDSTONE_PANEL);
+        registerItem(LAPIS_PANEL);
+        registerItem(IRON_PANEL);
+        registerItem(GOLD_PANEL);
+        registerItem(DIAMOND_PANEL);
+        registerItem(EMERALD_PANEL);
+    }
 
+    private static void registerItem(Item item) {
+        String name = item.getUnlocalizedName()
+            .substring(5);
+        GameRegistry.registerItem(item, name);
+        ITEM_LIST.add(item);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void registerRenders() {
+        MinecraftForgeClient.registerItemRenderer(REDSTONE_DANKNULL, new DankNullRenderer(DankNullTier.REDSTONE));
+        MinecraftForgeClient.registerItemRenderer(LAPIS_DANKNULL, new DankNullRenderer(DankNullTier.LAPIS));
+        MinecraftForgeClient.registerItemRenderer(IRON_DANKNULL, new DankNullRenderer(DankNullTier.IRON));
+        MinecraftForgeClient.registerItemRenderer(GOLD_DANKNULL, new DankNullRenderer(DankNullTier.GOLD));
+        MinecraftForgeClient.registerItemRenderer(DIAMOND_DANKNULL, new DankNullRenderer(DankNullTier.DIAMOND));
+        MinecraftForgeClient.registerItemRenderer(EMERALD_DANKNULL, new DankNullRenderer(DankNullTier.EMERALD));
+        MinecraftForgeClient.registerItemRenderer(CREATIVE_DANKNULL, new DankNullRenderer(DankNullTier.CREATIVE));
+
+        MinecraftForgeClient.registerItemRenderer(REDSTONE_PANEL, new DankNullPanelRenderer(DankNullTier.REDSTONE));
+        MinecraftForgeClient.registerItemRenderer(LAPIS_PANEL, new DankNullPanelRenderer(DankNullTier.LAPIS));
+        MinecraftForgeClient.registerItemRenderer(IRON_PANEL, new DankNullPanelRenderer(DankNullTier.IRON));
+        MinecraftForgeClient.registerItemRenderer(GOLD_PANEL, new DankNullPanelRenderer(DankNullTier.GOLD));
+        MinecraftForgeClient.registerItemRenderer(DIAMOND_PANEL, new DankNullPanelRenderer(DankNullTier.DIAMOND));
+        MinecraftForgeClient.registerItemRenderer(EMERALD_PANEL, new DankNullPanelRenderer(DankNullTier.EMERALD));
+
+        RenderingRegistry.registerEntityRenderingHandler(DankEntityItem.class, new DankRenderItem());
+
+        ClientRegistry.bindTileEntitySpecialRenderer(TileDankNullDock.class, new TESRDankNullDock());
+        MinecraftForgeClient
+            .registerItemRenderer(Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK), new DankNullDockRenderer());
+    }
 }

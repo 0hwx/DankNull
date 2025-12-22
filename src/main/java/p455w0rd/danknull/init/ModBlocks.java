@@ -1,9 +1,11 @@
 package p455w0rd.danknull.init;
 
 import net.minecraft.block.Block;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraft.item.ItemBlock;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 import p455w0rd.danknull.blocks.BlockDankNullDock;
-import p455w0rdslib.api.client.IModelHolder;
+import p455w0rd.danknull.items.ItemBlockDankNullDock;
 
 /**
  * @author p455w0rd
@@ -11,25 +13,18 @@ import p455w0rdslib.api.client.IModelHolder;
  */
 public class ModBlocks {
 
-	public static final BlockDankNullDock DANKNULL_DOCK = new BlockDankNullDock();
-	public static final Block[] BLOCK_ARRAY = new Block[] {
-			DANKNULL_DOCK
-	};
+    public static BlockDankNullDock DANKNULL_DOCK;
 
-	public static void registerModels() {
-		for (final Block block : getBlocks()) {
-			if (block instanceof IModelHolder) {
-				((IModelHolder) block).initModel();
-			}
-		}
-	}
+    public static void init() {
+        DANKNULL_DOCK = new BlockDankNullDock();
+        registerBlock(DANKNULL_DOCK, ItemBlockDankNullDock.class);
+    }
 
-	public static Block[] getBlocks() {
-		return BLOCK_ARRAY;
-	}
+    private static void registerBlock(Block block, Class<? extends ItemBlock> itemClass) {
+        String name = block.getUnlocalizedName()
+            .substring(5);
 
-	public static void register(final RegistryEvent.Register<Block> e) {
-		e.getRegistry().registerAll(getBlocks());
-	}
+        GameRegistry.registerBlock(block, itemClass, name);
+    }
 
 }

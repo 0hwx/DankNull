@@ -1,68 +1,37 @@
 package p455w0rd.danknull.proxy;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.common.event.*;
-import p455w0rd.danknull.client.gui.GuiDankNull;
-import p455w0rd.danknull.init.*;
-import p455w0rd.danknull.inventory.InventoryDankNull;
-import p455w0rdslib.util.EasyMappings;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import p455w0rd.danknull.client.KeyBindings;
+import p455w0rd.danknull.init.ModCreativeTab;
+import p455w0rd.danknull.init.ModIntegration;
+import p455w0rd.danknull.init.ModItems;
 
 public class ClientProxy extends CommonProxy {
 
-	@Override
-	public void preInit(final FMLPreInitializationEvent e) {
-		super.preInit(e);
-		ModItems.registerCustomRenderedItems();
-		ModCreativeTab.init();
-		ModKeyBindings.register();
-	}
+    @Override
+    public void preInit(final FMLPreInitializationEvent e) {
+        super.preInit(e);
+        ModCreativeTab.init();
+        KeyBindings.register();
+    }
 
-	@Override
-	public void init(final FMLInitializationEvent e) {
-		super.init(e);
-	}
+    @Override
+    public void init(final FMLInitializationEvent e) {
+        super.init(e);
+        ModIntegration.init();
+    }
 
-	@Override
-	public void postInit(final FMLPostInitializationEvent e) {
-		super.postInit(e);
-		ModIntegration.postInit();
-	}
+    @Override
+    public void postInit(final FMLPostInitializationEvent e) {
+        super.postInit(e);
+        ModItems.registerRenders();
+    }
 
-	@Override
-	public void serverStarting(final FMLServerStartingEvent e) {
-		super.serverStarting(e);
-	}
-
-	@Override
-	public EntityPlayer getPlayer() {
-		return EasyMappings.player();
-	}
-
-	@Override
-	public World getWorld() {
-		return Minecraft.getMinecraft().world;
-	}
-
-	@Override
-	public World getWorld(final int dimension) {
-		return getWorld();
-	}
-
-	public GuiScreen getScreen() {
-		return Minecraft.getMinecraft().currentScreen;
-	}
-
-	@Override
-	public void setGuiInventory(final InventoryDankNull inventory) {
-		final GuiScreen gui = getScreen();
-		if (gui instanceof GuiDankNull) {
-			final GuiDankNull dankGui = (GuiDankNull) gui;
-			final InventoryDankNull currentInv = dankGui.getDankNullInventory();
-			currentInv.loadInventory(inventory.saveInventory(new NBTTagCompound()));
-		}
-	}
+    @Override
+    public void serverStarting(final FMLServerStartingEvent e) {
+        super.serverStarting(e);
+    }
 }
