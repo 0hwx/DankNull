@@ -429,7 +429,7 @@ public class DankNullHandler extends ItemStackHandler {
     public void onContentsChanged(int slot) {
         super.onContentsChanged(slot);
 
-        if (!world.isRemote && dank != null) {
+        if (world != null && !world.isRemote && dank != null) {
             DankNullHandler.saveDank(dank, this);
 
             if (dockTile != null) {
