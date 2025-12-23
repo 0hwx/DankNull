@@ -196,14 +196,14 @@ public class ModConfig {
     public static class Options {
 
         public static boolean callItDevNull = false;
-        public static boolean superShine = false;
+        public static boolean superShine = false; // need to add it
         public static String creativeBlacklist = "";
         public static String creativeWhitelist = "";
         public static String oreBlacklist = "";
         public static String oreWhitelist = "";
         public static boolean showHUD = true;
         public static boolean disableOreDictMode = false;
-        public static boolean allowDockInserting = true;
+        public static boolean allowDockInserting = true; // need to add it
         public static boolean skipNonBlocksOnCycle = false;
         private static List<ItemStack> creativeItemBlacklist;
         private static List<ItemStack> creativeItemWhitelist;
