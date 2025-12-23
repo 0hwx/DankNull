@@ -1,53 +1,65 @@
 package p455w0rd.danknull.inventory;
 
-import net.minecraft.init.Bootstrap;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import p455w0rd.danknull.api.DankNullItemModes;
-import p455w0rd.danknull.init.ModGlobals;
+import net.minecraft.world.World;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import p455w0rd.danknull.api.DankNullItemModes.ItemExtractionMode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-@RunWith(JUnit4.class)
 public class DankNullHandlerTest {
+
     private DankNullHandler dankNull;
+    private ItemStack dummyDank;
+    private World mockWorld;
 
-    @Before
+    @BeforeEach
     public void setup() {
-        Bootstrap.register();
+        mockWorld = Mockito.mock(World.class);
+        mockWorld.isRemote = false; // Ensure we are on "server side" for saving logic
 
-        dankNull = new DankNullHandler(ModGlobals.DankNullTier.REDSTONE);
-    }
+        dummyDank = new ItemStack(new Item(), 1);
 
-
-    @Test
-    public void normalInteractions() {
-        ItemStack itemStack = new ItemStack(new Item(), 64);
-        dankNull.setExtractionMode(itemStack, DankNullItemModes.ItemExtractionMode.KEEP_NONE);
-
-        assertTrue(dankNull.insertItem(0, itemStack, false).isEmpty());
-        assertTrue(dankNull.insertItem(0, itemStack, false).isEmpty());
-        assertEquals(dankNull.insertItem(0, itemStack, false).getCount(), 64);
-        assertTrue(dankNull.insertItem(1, itemStack, false).isEmpty());
-        assertTrue(dankNull.insertItem(1, itemStack, false).isEmpty());
-        assertEquals(dankNull.insertItem(1, itemStack, false).getCount(), 64);
-
-        assertEquals(dankNull.extractItem(0, 64, false).getCount(), 64);
-        assertEquals(dankNull.extractItem(0, 64, false).getCount(), 64);
-        assertEquals(dankNull.extractItem(0, 64, false).getCount(), 0);
+        dankNull = new DankNullHandler(mockWorld, dummyDank, null);
     }
 
     @Test
-    public void extractItemLimited() {
-        ItemStack itemStack = new ItemStack(new Item(), 64);
-        dankNull.setExtractionMode(itemStack, DankNullItemModes.ItemExtractionMode.KEEP_16);
+    public void testInsertionAndExtraction() {
+        ItemStack stack = new ItemStack(new Item(), 64);
 
-        assertTrue(dankNull.insertItem(0, itemStack, false).isEmpty());
-        assertEquals(dankNull.extractItem(0, 64, false).getCount(), 48);
+        // Set mode to KEEP_NONE (Extract everything)
+        dankNull.setExtractionMode(0, ItemExtractionMode.KEEP_NONE);
+
+        // Test Insertion (insertItem returns the remainder)
+        ItemStack remainder = dankNull.insertItem(0, stack.copy(), false);
+        assertNull(remainder, "Stack should be fully inserted");
+
+        assertEquals(64, dankNull.getStackInSlot(0).stackSize);
+
+        // Test Extraction
+        ItemStack extracted = dankNull.extractItem(0, 32, false);
+        assertNotNull(extracted);
+        assertEquals(32, extracted.stackSize);
+        assertEquals(32, dankNull.getStackInSlot(0).stackSize);
+    }
+
+    @Test
+    public void testKeepModeExtraction() {
+        ItemStack stack = new ItemStack(new Item(), 64);
+
+        // Set mode to KEEP_16
+        dankNull.setExtractionMode(0, ItemExtractionMode.KEEP_16);
+        dankNull.insertItem(0, stack, false);
+
+        // Try to extract all 64. Logic should only allow 48 (64 - 16 = 48)
+        ItemStack extracted = dankNull.extractItem(0, 64, false);
+
+        assertNotNull(extracted);
+        assertEquals(48, extracted.stackSize);
+        assertEquals(16, dankNull.getStackInSlot(0).stackSize);
     }
 }
