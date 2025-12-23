@@ -7,6 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.AdvancedModelLoader;
 import net.minecraftforge.client.model.IModelCustom;
 
@@ -123,11 +124,15 @@ public class DankNullRenderer implements IItemRenderer {
         GL11.glTranslatef(Xoffset, Yoffset, 0.0F);
 
         float rotation = (System.currentTimeMillis() % 36000L) / 50F;
-        GL11.glRotatef(rotation, 1F, 1F, 1F);
 
-        if (renderStack.getItem() instanceof ItemDankNullPanel
-            || renderStack.getItem() == Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK)) {
-            GL11.glRotatef(rotation, 1F, 0F, 1F);
+        if (renderStack.getItem() instanceof ItemDankNullPanel || renderStack.getItem() == Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK)) {
+            int scale = 2;
+            GL11.glTranslatef(0, -0.25f, 0.0F);
+            GL11.glScaled(scale,scale,scale);
+            GL11.glRotatef(rotation, 0F, 1F, 0F);
+
+        } else {
+            GL11.glRotatef(rotation, 1F, 1F, 1F);
         }
 
         DankEntityItem entityItem = new DankEntityItem(mc.theWorld, 0, 0, 0, renderStack);
