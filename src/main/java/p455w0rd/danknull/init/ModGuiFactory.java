@@ -41,11 +41,11 @@ public class ModGuiFactory implements IModGuiFactory {
         public ModGuiConfig(GuiScreen parent) {
             super(
                 parent,
-                ModConfig.getClientConfigElements(), // Your list of IConfigElement
+                ModConfig.getClientConfigElements(),
                 DankNull.MODID,
-                false, // allRequireWorldRestart
-                false, // allRequireMcRestart
-                DankNull.NAME + " Config" // Title
+                false,
+                false,
+                DankNull.NAME + " Config"
             );
         }
     }

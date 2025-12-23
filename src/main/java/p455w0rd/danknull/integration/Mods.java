@@ -16,7 +16,7 @@ public enum Mods {
     ;
     //spotless:on
 
-    private final String modid;
+    public final String modid;
     private final Predicate<ModContainer> modPredicate;
     private Boolean loaded;
 
