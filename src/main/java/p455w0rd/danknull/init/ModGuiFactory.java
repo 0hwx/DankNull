@@ -8,6 +8,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 
 import cpw.mods.fml.client.IModGuiFactory;
+import cpw.mods.fml.client.config.GuiConfig;
+import p455w0rd.danknull.DankNull;
 
 /**
  * @author p455w0rd
@@ -20,7 +22,7 @@ public class ModGuiFactory implements IModGuiFactory {
 
     @Override
     public Class<? extends GuiScreen> mainConfigGuiClass() {
-        return null;
+        return ModGuiConfig.class;
     }
 
     @Nullable
@@ -32,6 +34,20 @@ public class ModGuiFactory implements IModGuiFactory {
     @Override
     public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
         return null;
+    }
+
+    public static class ModGuiConfig extends GuiConfig {
+
+        public ModGuiConfig(GuiScreen parent) {
+            super(
+                parent,
+                ModConfig.getClientConfigElements(), // Your list of IConfigElement
+                DankNull.MODID,
+                false, // allRequireWorldRestart
+                false, // allRequireMcRestart
+                DankNull.NAME + " Config" // Title
+            );
+        }
     }
 
 }
