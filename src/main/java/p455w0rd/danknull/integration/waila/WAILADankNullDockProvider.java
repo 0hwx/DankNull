@@ -17,12 +17,13 @@ import p455w0rd.danknull.api.DankNullTier;
 import p455w0rd.danknull.blocks.tiles.TileDankNullDock;
 import p455w0rd.danknull.init.ModBlocks;
 import p455w0rd.danknull.integration.WAILA;
+import p455w0rd.danknull.inventory.DankNullHandler;
 
 /**
  * @author p455w0rd
  *
  */
-// currently not working
+// spotless:off
 public class WAILADankNullDockProvider implements IWailaDataProvider {
 
     @Override
@@ -49,41 +50,32 @@ public class WAILADankNullDockProvider implements IWailaDataProvider {
         final IWailaDataAccessor accessor, final IWailaConfigHandler config) {
         final TileDankNullDock dankDock = (TileDankNullDock) accessor.getTileEntity();
         if (dankDock.getDankNull() != null) {
-            final ItemStack dockedDankNull = dankDock.getDankNull();
+            ItemStack dockedDankNull = dankDock.getDankNull();
             if (dockedDankNull != null) {
                 currenttip.add(WAILA.toolTipEnclose);
-                currenttip.add(
-                    DankNullTier.Rarities.getRarityFromMeta(
-                        DankNullTier.getTier(dockedDankNull)
-                            .ordinal()).rarityColor
-                        + ""
-                        + dockedDankNull.getDisplayName()
-                        + ""
-                        + EnumChatFormatting.GRAY
-                        + " Docked");
-                if (dankDock.getDankHandler()
-                    .getSelected() < 0) {
-                    return currenttip;
-                }
-                final ItemStack selectedStack = dankDock.getDankHandler()
-                    .getStackInSlot(
-                        dankDock.getDankHandler()
-                            .getSelected());
-                if (selectedStack != null) {
-                    currenttip
-                        .add(selectedStack.getDisplayName() + " " + StatCollector.translateToLocal("dn.selected.desc"));
-                    currenttip.add(
-                        StatCollector.translateToLocal("dn.count.desc") + ": "
-                            + (DankNullTier.getTier(dockedDankNull) == DankNullTier.CREATIVE
+
+                // Tier color and name
+                EnumChatFormatting colorCode = DankNullTier.Rarities.getRarityFromMeta(DankNullTier.getTier(dockedDankNull).ordinal()).rarityColor;
+                currenttip.add(colorCode + dockedDankNull.getDisplayName() + EnumChatFormatting.GRAY + " Docked");
+
+                DankNullHandler handler = dankDock.getDankHandler();
+                if (handler != null) {
+                    int selectedIndex = handler.getSelected();
+
+                    // Safety check: ensure the slot exists (prevents the 'Slot X not in range' crash in WAILA)
+                    if (selectedIndex >= 0 && selectedIndex < handler.getSlots()) {
+                        ItemStack selectedStack = handler.getStackInSlot(selectedIndex);
+                        if (selectedStack != null) {
+                            currenttip.add(selectedStack.getDisplayName() + " " + StatCollector.translateToLocal("dn.selected.desc"));
+
+                            String countDisplay = (DankNullTier.getTier(dockedDankNull) == DankNullTier.CREATIVE)
                                 ? StatCollector.translateToLocal("dn.infinite.desc")
-                                : selectedStack.stackSize));
-                    currenttip.add(
-                        StatCollector.translateToLocal("dn.extract_mode.desc") + ": "
-                            + dankDock.getDankHandler()
-                                .getExtractionMode(
-                                    dankDock.getDankHandler()
-                                        .getSelected())
-                                .getTooltip());
+                                : String.valueOf(selectedStack.stackSize);
+
+                            currenttip.add(StatCollector.translateToLocal("dn.count.desc") + ": " + countDisplay);
+                            currenttip.add(StatCollector.translateToLocal("dn.extract_mode.desc") + ": " + handler.getExtractionMode(selectedIndex).getTooltip());
+                        }
+                    }
                 }
                 currenttip.add(WAILA.toolTipEnclose);
             }

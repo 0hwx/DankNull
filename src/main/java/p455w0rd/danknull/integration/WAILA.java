@@ -19,7 +19,7 @@ public class WAILA {
 
     public static void init() {
         DankNull.LOGGER.info("Waila Integation: Enabled");
-        FMLInterModComms.sendMessage(Mods.WAILA.name(), "register", WAILA.class.getName() + ".callbackRegister");
+        FMLInterModComms.sendMessage(Mods.WAILA.modid, "register", WAILA.class.getName() + ".callbackRegister");
     }
 
     public static void callbackRegister(final IWailaRegistrar registrar) {
