@@ -16,7 +16,6 @@ import mcp.mobius.waila.api.IWailaDataProvider;
 import p455w0rd.danknull.api.DankNullTier;
 import p455w0rd.danknull.blocks.tiles.TileDankNullDock;
 import p455w0rd.danknull.init.ModBlocks;
-import p455w0rd.danknull.integration.WAILA;
 import p455w0rd.danknull.inventory.DankNullHandler;
 
 /**
@@ -51,13 +50,12 @@ public class WAILADankNullDockProvider implements IWailaDataProvider {
         if (dankDock.getDankNull() != null) {
             ItemStack dockedDankNull = dankDock.getDankNull();
             if (dockedDankNull != null) {
-                currenttip.add(WAILA.toolTipEnclose);
 
                 // Tier color and name
                 EnumChatFormatting colorCode = DankNullTier.Rarities.getRarityFromMeta(
                     DankNullTier.getTier(dockedDankNull)
                         .ordinal()).rarityColor;
-                currenttip.add(colorCode + dockedDankNull.getDisplayName() + EnumChatFormatting.GRAY + " Docked");
+                currenttip.add("Docked: " + colorCode + dockedDankNull.getDisplayName() + EnumChatFormatting.GRAY);
 
                 DankNullHandler handler = dankDock.getDankHandler();
                 if (handler != null) {
@@ -68,8 +66,8 @@ public class WAILADankNullDockProvider implements IWailaDataProvider {
                         ItemStack selectedStack = handler.getStackInSlot(selectedIndex);
                         if (selectedStack != null) {
                             currenttip.add(
-                                selectedStack.getDisplayName() + " "
-                                    + StatCollector.translateToLocal("dn.selected.desc"));
+                                StatCollector.translateToLocal("dn.selected.desc") + ": "
+                                    + selectedStack.getDisplayName());
 
                             String countDisplay = (DankNullTier.getTier(dockedDankNull) == DankNullTier.CREATIVE)
                                 ? StatCollector.translateToLocal("dn.infinite.desc")
@@ -77,13 +75,11 @@ public class WAILADankNullDockProvider implements IWailaDataProvider {
 
                             currenttip.add(StatCollector.translateToLocal("dn.count.desc") + ": " + countDisplay);
                             currenttip.add(
-                                StatCollector.translateToLocal("dn.extract_mode.desc") + ": "
-                                    + handler.getExtractionMode(selectedIndex)
-                                        .getTooltip());
+                                "Mode: " + handler.getExtractionMode(selectedIndex)
+                                    .getTooltip());
                         }
                     }
                 }
-                currenttip.add(WAILA.toolTipEnclose);
             }
         }
         return currenttip;

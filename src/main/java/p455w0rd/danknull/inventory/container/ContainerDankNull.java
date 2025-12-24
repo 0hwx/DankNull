@@ -66,7 +66,7 @@ public abstract class ContainerDankNull extends Container {
 
     public abstract ItemStack getDankNullStack();
 
-    protected boolean isDock() {
+    public boolean isDock() {
         return false;
     }
 

@@ -26,7 +26,7 @@ public class ContainerDankNullDock extends ContainerDankNull {
     }
 
     @Override
-    protected boolean isDock() {
+    public boolean isDock() {
         return true;
     }
 
