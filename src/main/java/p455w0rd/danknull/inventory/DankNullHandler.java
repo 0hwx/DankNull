@@ -138,33 +138,6 @@ public class DankNullHandler extends ItemStackHandler {
         return super.extractItem(slot, amount, simulate);
     }
 
-    // need to work on this more
-    public boolean consumeForPlacement(int slot) {
-        validateSlotIndex(slot);
-
-        ItemStack stack = getStackInSlot(slot);
-        if (stack == null) return false;
-
-        ItemPlacementMode mode = getPlacementMode(slot);
-        int keep = mode.getNumberToKeep();
-
-        // respect KEEP_x
-        if (stack.stackSize <= keep) {
-            return false;
-        }
-
-        // consume exactly ONE
-        stack.stackSize--;
-
-        if (stack.stackSize <= 0) {
-            setStackInSlot(slot, null);
-        } else {
-            setStackInSlot(slot, stack);
-        }
-
-        return true;
-    }
-
     public int findItemStack(@Nonnull final ItemStack stack) {
         for (int i = 0; i < getSlots(); i++) {
             if (areItemStacksEqualIgnoreSize(getStackInSlot(i), stack)) {

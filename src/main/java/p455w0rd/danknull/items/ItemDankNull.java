@@ -166,14 +166,22 @@ public class ItemDankNull extends Item {
         if (stored.getItem() instanceof ItemBlock) {
             ItemBlock itemBlock = (ItemBlock) stored.getItem();
 
-            ItemStack placeStack = stored.copy();
-            placeStack.stackSize = 1;
-
-            boolean placed = itemBlock.onItemUse(placeStack, player, world, x, y, z, side, hitX, hitY, hitZ);
+            boolean placed = itemBlock.onItemUse(stored, player, world, x, y, z, side, hitX, hitY, hitZ);
 
             if (!placed) return false;
 
-            handler.consumeForPlacement(selected);
+            // increment the stack size so it does not get consumed
+            if (player.capabilities.isCreativeMode) {
+                ++stored.stackSize;
+            }
+
+            // remove the item from the dank is it's stack size is 0
+            if (stored.stackSize <= 0) {
+                handler.setStackInSlot(selected, null);
+                // update the index so we can place the next item
+                handler.updateSelectedSlot();
+            }
+
             DankNullHandler.saveDank(stack, handler);
             return true;
         }
