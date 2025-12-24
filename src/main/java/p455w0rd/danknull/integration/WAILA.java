@@ -1,7 +1,5 @@
 package p455w0rd.danknull.integration;
 
-import net.minecraft.util.EnumChatFormatting;
-
 import cpw.mods.fml.common.event.FMLInterModComms;
 import mcp.mobius.waila.api.IWailaRegistrar;
 import p455w0rd.danknull.DankNull;
@@ -12,10 +10,6 @@ import p455w0rd.danknull.integration.waila.WAILADankNullDockProvider;
  * @author p455w0rd
  */
 public class WAILA {
-
-    public static String toolTipEnclose = EnumChatFormatting.BOLD + ""
-        + EnumChatFormatting.GREEN
-        + "=====================";
 
     public static void init() {
         DankNull.LOGGER.info("Waila Integation: Enabled");

@@ -39,14 +39,7 @@ public class ModGuiFactory implements IModGuiFactory {
     public static class ModGuiConfig extends GuiConfig {
 
         public ModGuiConfig(GuiScreen parent) {
-            super(
-                parent,
-                ModConfig.getClientConfigElements(),
-                DankNull.MODID,
-                false,
-                false,
-                DankNull.NAME + " Config"
-            );
+            super(parent, ModConfig.getClientConfigElements(), DankNull.MODID, false, false, DankNull.NAME + " Config");
         }
     }
 
