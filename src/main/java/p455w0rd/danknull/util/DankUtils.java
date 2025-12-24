@@ -77,16 +77,12 @@ public class DankUtils {
         if (cap == null) return false;
 
         NBTTagList itemsList = cap.getTagList("Items", Constants.NBT.TAG_COMPOUND);
-        String incomingID = incoming.getItem().delegate.name(); // Fast String ID
 
         for (int i = 0; i < itemsList.tagCount(); i++) {
             NBTTagCompound itemTag = itemsList.getCompoundTagAt(i);
 
-            if (itemTag.getString("id")
-                .equals(incomingID)) {
-                ItemStack internal = ItemStack.loadItemStackFromNBT(itemTag);
-                if (areItemStacksEqualIgnoreSize(internal, incoming)) return true;
-            }
+            ItemStack stack = ItemStack.loadItemStackFromNBT(itemTag);
+            if (areItemStacksEqualIgnoreSize(stack, incoming)) return true;
 
             // OreDict Check
             if (itemTag.hasKey(DankNullHandler.NBT.DANK_SETTINGS)) {
