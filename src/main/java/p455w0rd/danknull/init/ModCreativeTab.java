@@ -1,21 +1,24 @@
 package p455w0rd.danknull.init;
 
-import net.minecraft.block.Block;
+import java.util.List;
+
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+
+import p455w0rd.danknull.DankNull;
 
 /**
  * @author p455w0rd
+ *
  */
 public class ModCreativeTab extends CreativeTabs {
 
     public static CreativeTabs TAB;
 
     public ModCreativeTab() {
-        super(ModGlobals.MODID);
+        super(DankNull.MODID);
     }
 
     public static void init() {
@@ -23,20 +26,23 @@ public class ModCreativeTab extends CreativeTabs {
     }
 
     @Override
-    public ItemStack createIcon() {
+    public ItemStack getIconItemStack() {
         return new ItemStack(ModItems.CREATIVE_DANKNULL);
     }
 
     @Override
-    public void displayAllRelevantItems(final NonNullList<ItemStack> items) {
-        for (final Item item : ModItems.getItems()) {
+    public Item getTabIconItem() {
+        return null;
+    }
+
+    @Override
+    public void displayAllReleventItems(final List<ItemStack> items) {
+        for (final Item item : ModItems.ITEM_LIST) {
             if (!(item instanceof ItemBlock)) {
                 items.add(new ItemStack(item));
             }
         }
-        for (final Block block : ModBlocks.getBlocks()) {
-            items.add(new ItemStack(block));
-        }
+        items.add(new ItemStack(ModBlocks.DANKNULL_DOCK));
     }
 
 }

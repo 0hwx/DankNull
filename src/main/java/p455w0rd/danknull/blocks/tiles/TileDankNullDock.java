@@ -1,155 +1,212 @@
 package p455w0rd.danknull.blocks.tiles;
 
-import net.minecraft.block.state.IBlockState;
+import javax.annotation.Nullable;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.datafix.FixTypes;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.items.CapabilityItemHandler;
-import p455w0rd.danknull.api.IDankNullHandler;
-import p455w0rd.danknull.init.ModDataFixing.DankNullFixer;
-import p455w0rd.danknull.init.ModGlobals.NBT;
+
 import p455w0rd.danknull.inventory.DankNullHandler;
-import p455w0rd.danknull.inventory.cap.CapabilityDankNull;
-import p455w0rd.danknull.items.ItemDankNull;
+import p455w0rd.danknull.util.inv.ItemStackHandler;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+public class TileDankNullDock extends TileEntity implements ISidedInventory {
 
-import static p455w0rd.danknull.inventory.cap.DankNullCapabilityProvider.DANK_NULL_CAP_TAG;
+    private DankNullHandler cachedHandler;
 
-/**
- * @author p455w0rd
- */
-public class TileDankNullDock extends TileEntity {
+    // the Dank inventory
+    private final ItemStackHandler inventory = new ItemStackHandler(1) {
 
-    private final DankNullFixer fixer = new DankNullFixer(FixTypes.BLOCK_ENTITY);
-    private ItemStack dankNull = ItemStack.EMPTY;
-    private IDankNullHandler dankNullHandler = null;
-
-    @Override
-    public boolean hasCapability(final Capability<?> capability, final EnumFacing facing) {
-        if (!getDankNull().isEmpty()) {
-            if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY || capability == CapabilityDankNull.DANK_NULL_CAPABILITY) {
-                return true;
-            }
-        }
-        return super.hasCapability(capability, facing);
-    }
-
-    @Override
-    public <T> T getCapability(final Capability<T> capability, final EnumFacing facing) {
-        if (!getDankNull().isEmpty()) {
-            if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-                return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(dankNullHandler);
-            }
-            if (capability == CapabilityDankNull.DANK_NULL_CAPABILITY) {
-                return CapabilityDankNull.DANK_NULL_CAPABILITY.cast(dankNullHandler);
-            }
-        }
-        return super.getCapability(capability, facing);
-    }
-
-    public void removeDankNull() {
-        if (!getDankNull().isEmpty()) {
-            dankNull = ItemStack.EMPTY;
-            dankNullHandler = null;
+        @Override
+        protected void onContentsChanged(int slot) {
             markDirty();
         }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1; // Only allow one item
+        }
+    };
+
+    public TileDankNullDock() {}
+
+    public ItemStackHandler getInventory() {
+        return inventory;
+    }
+
+    @Nullable
+    public DankNullHandler getDankHandler() {
+        ItemStack dank = getDankNull();
+        if (dank == null) {
+            cachedHandler = null;
+            return null;
+        }
+
+        if (cachedHandler == null) {
+            cachedHandler = DankNullHandler.fromStack(worldObj, dank, this);
+        }
+        cachedHandler.updateSelectedSlot();
+        return cachedHandler;
     }
 
     public ItemStack getDankNull() {
-        return dankNull;
+        return inventory.getStackInSlot(0);
     }
 
-    public void setDankNull(final ItemStack dankNull) {
-        this.dankNull = dankNull.copy();
-        if (!this.dankNull.isEmpty()) {
-            if(this.dankNull.getTagCompound() == null) {
-                this.dankNull.setTagCompound(new NBTTagCompound());
-            }
-            dankNullHandler = new DankNullHandler(ItemDankNull.getTier(this.dankNull)) {
-
-                @Override
-                public ItemStack getStackInSlot(final int slot) {
-                    validateSlot(slot);
-                    return getExtractableStackInSlot(slot);
-                }
-
-                @Override
-                protected void onDataChanged() {
-                    super.onDataChanged();
-                    TileDankNullDock.this.markDirty();
-                }
-            };
-            CapabilityDankNull.DANK_NULL_CAPABILITY.readNBT(dankNullHandler, null, this.dankNull.getTagCompound().getCompoundTag(DANK_NULL_CAP_TAG));
-        }
+    public void setDankNull(ItemStack stack) {
+        inventory.setStackInSlot(0, stack);
+        cachedHandler = null; // force rebuild
         markDirty();
     }
 
-    @Override
-    public boolean shouldRefresh(final World world, final BlockPos pos, final IBlockState oldState, final IBlockState newSate) {
-        return super.shouldRefresh(world, pos, oldState, newSate);
-    }
-
-    @Override
-    @Nonnull
-    public NBTTagCompound getUpdateTag() {
-        return writeToNBT(new NBTTagCompound());
+    public void removeDankNull() {
+        inventory.setStackInSlot(0, null);
     }
 
     @Override
     @Nullable
-    public SPacketUpdateTileEntity getUpdatePacket() {
-        return new SPacketUpdateTileEntity(getPos(), -1, getUpdateTag());
+    public Packet getDescriptionPacket() {
+        NBTTagCompound nbt = new NBTTagCompound();
+        this.writeToNBT(nbt);
+        return new S35PacketUpdateTileEntity(this.xCoord, this.yCoord, this.zCoord, -1, nbt);
     }
 
     @Override
-    public void onDataPacket(final NetworkManager net, final SPacketUpdateTileEntity pkt) {
-        handleUpdateTag(pkt.getNbtCompound());
+    public void onDataPacket(final NetworkManager net, final S35PacketUpdateTileEntity pkt) {
+        this.readFromNBT(pkt.func_148857_g());
+    }
+
+    @Override
+    public int getSizeInventory() {
+        if (getDankHandler() != null) {
+            return getDankHandler().getSlots();
+        }
+        return 0;
+    }
+
+    @Override
+    public ItemStack getStackInSlot(int slotIn) {
+        DankNullHandler handler = getDankHandler();
+        if (handler == null) return null;
+        return handler.getStackInSlot(slotIn);
+    }
+
+    @Override
+    public ItemStack decrStackSize(int slot, int amount) {
+        DankNullHandler handler = getDankHandler();
+        if (handler == null || worldObj.isRemote) return null;
+
+        ItemStack extracted = handler.extractItemIngoreExtractionMode(slot, amount, false);
+        if (extracted != null) {
+            markDirty();
+        }
+        return extracted;
+    }
+
+    @Override
+    public ItemStack getStackInSlotOnClosing(int index) {
+        return null;
+    }
+
+    @Override
+    public void setInventorySlotContents(int slot, ItemStack stack) {
+        DankNullHandler handler = getDankHandler();
+        if (handler == null || worldObj.isRemote) return;
+
+        handler.setInventorySlotContents(slot, stack);
+        markDirty();
+    }
+
+    @Override
+    public String getInventoryName() {
+        return "Dock";
+    }
+
+    @Override
+    public boolean hasCustomInventoryName() {
+        return false;
+    }
+
+    @Override
+    public int getInventoryStackLimit() {
+        if (getDankHandler() != null) {
+            return getDankHandler().getTier()
+                .getMaxStackSize();
+        }
+        return 0;
     }
 
     @Override
     public void markDirty() {
         super.markDirty();
-        //VanillaPacketDispatcher.dispatchTEToNearbyPlayers(this);
-        if (world != null) { // Shouldn't be null
-            world.markBlockRangeForRenderUpdate(pos, pos);
-            world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 3);
-            world.scheduleBlockUpdate(pos, getBlockType(), 0, 0);
+        if (worldObj != null) { // Shouldn't be null
+            worldObj.markBlockRangeForRenderUpdate(
+                this.xCoord,
+                this.yCoord,
+                this.zCoord,
+                this.xCoord,
+                this.yCoord,
+                this.zCoord);
+            worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+            worldObj.scheduleBlockUpdateWithPriority(this.xCoord, this.yCoord, this.zCoord, getBlockType(), 0, 0);
         }
     }
 
     @Override
-    public void readFromNBT(final NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
-        if (nbt.hasKey(NBT.DOCKEDSTACK, Constants.NBT.TAG_COMPOUND)) {
-            final NBTTagCompound dockedTag = nbt.getCompoundTag(NBT.DOCKEDSTACK);
-            final ItemStack dankNull = new ItemStack(dockedTag);
-            setDankNull(dankNull);
-            if (!dankNull.isEmpty() && dankNull.hasTagCompound() && dankNull.getTagCompound().hasKey(DANK_NULL_CAP_TAG)) {
-                CapabilityDankNull.DANK_NULL_CAPABILITY.readNBT(dankNullHandler, null, dankNull.getTagCompound().getCompoundTag(DANK_NULL_CAP_TAG));
-            }
-        }
+    public boolean isUseableByPlayer(EntityPlayer player) {
+        return true;
     }
 
     @Override
-    @Nonnull
-    public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound = super.writeToNBT(compound);
-        final ItemStack dankNull = getDankNull();
-        if (dankNullHandler != null) {
-            dankNull.getTagCompound().setTag(DANK_NULL_CAP_TAG, CapabilityDankNull.DANK_NULL_CAPABILITY.writeNBT(dankNullHandler, null));
-        }
-        compound.setTag(NBT.DOCKEDSTACK, dankNull.serializeNBT());
-        return compound;
+    public void openInventory() {
+
     }
 
+    @Override
+    public void closeInventory() {
+
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int index, ItemStack stack) {
+        if (getDankHandler() != null) {
+            return getDankHandler().isItemValid(index, stack);
+        }
+        return false;
+    }
+
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
+        inventory.deserializeNBT(compound.getCompoundTag("Inventory"));
+    }
+
+    @Override
+    public void writeToNBT(NBTTagCompound compound) {
+        super.writeToNBT(compound);
+        compound.setTag("Inventory", inventory.serializeNBT());
+    }
+
+    @Override
+    public int[] getAccessibleSlotsFromSide(int p_94128_1_) {
+        int[] slots = new int[getSizeInventory()];
+        for (int i = 0; i < slots.length; i++) {
+            slots[i] = i;
+        }
+        return slots;
+    }
+
+    @Override
+    public boolean canInsertItem(int p_102007_1_, ItemStack p_102007_2_, int p_102007_3_) {
+        return true;
+    }
+
+    @Override
+    public boolean canExtractItem(int p_102008_1_, ItemStack p_102008_2_, int p_102008_3_) {
+        return true;
+    }
 }

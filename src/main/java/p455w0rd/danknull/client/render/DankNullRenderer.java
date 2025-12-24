@@ -1,235 +1,142 @@
 package p455w0rd.danknull.client.render;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockTorch;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.block.model.IBakedModel;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms.TransformType;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.client.renderer.tileentity.TileEntityItemStackRenderer;
-import net.minecraft.client.settings.GameSettings;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.item.*;
-import net.minecraftforge.client.ForgeHooksClient;
-import p455w0rd.danknull.api.IDankNullHandler;
+import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.IItemRenderer;
+import net.minecraftforge.client.model.AdvancedModelLoader;
+import net.minecraftforge.client.model.IModelCustom;
+
+import org.lwjgl.opengl.GL11;
+
+import p455w0rd.danknull.api.DankNullTier;
+import p455w0rd.danknull.client.render.entity.DankEntityItem;
+import p455w0rd.danknull.client.render.entity.DankRenderItem;
 import p455w0rd.danknull.init.ModBlocks;
-import p455w0rd.danknull.init.ModConfig.Options;
-import p455w0rd.danknull.init.ModGlobals;
-import p455w0rd.danknull.inventory.cap.CapabilityDankNull;
 import p455w0rd.danknull.items.ItemDankNull;
 import p455w0rd.danknull.items.ItemDankNullPanel;
-import p455w0rdslib.api.client.ICustomItemRenderer;
-import p455w0rdslib.api.client.IModelHolder;
-import p455w0rdslib.api.client.ItemLayerWrapper;
+import p455w0rd.danknull.util.DankUtils;
 
-import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
+public class DankNullRenderer implements IItemRenderer {
 
-/**
- * @author p455w0rd
- */
-public class DankNullRenderer extends TileEntityItemStackRenderer implements ICustomItemRenderer {
+    private final Minecraft mc = Minecraft.getMinecraft();
+    private final DankNullTier tier;
+    private final IModelCustom dankModel = AdvancedModelLoader
+        .loadModel(new ResourceLocation("danknull", "models/item/dank_null.obj"));
+    private final ResourceLocation frameTexture = new ResourceLocation("danknull", "textures/items/danknull/frame.png");
+    private final ResourceLocation glassTexture;
 
-    private static final Map<Item, DankNullRenderer> CACHE = new HashMap<>();
-    public static TransformType transformType;
-    public ItemLayerWrapper model;
-    boolean isGUI = false;
+    public DankNullRenderer(DankNullTier tier) {
+        this.tier = tier;
+        this.glassTexture = new ResourceLocation(
+            "danknull",
+            "textures/items/danknull/glass_" + tier.name()
+                .toLowerCase() + ".png");
 
-    private DankNullRenderer(@Nonnull final Item item) {
-        registerRenderer(item, this);
-    }
-
-    private static void registerRenderer(final Item item, final DankNullRenderer instance) {
-        CACHE.put(item, instance);
-    }
-
-    public static DankNullRenderer getRendererForItem(final Item item) {
-        if (!CACHE.containsKey(item)) {
-            new DankNullRenderer(item);
-        }
-        return CACHE.get(item);
-    }
-
-    private static void renderItem(final ItemStack stack, final IBakedModel model) {
-        renderItem(stack, model, false);
-    }
-
-    private static void renderItem(final ItemStack stack, final IBakedModel model, final boolean disableGlint) {
-        if (!stack.isEmpty() && model != null) {
-            if (model.isBuiltInRenderer() && !(stack.getItem() instanceof ItemDankNull)) {
-                Minecraft.getMinecraft().getItemRenderer().renderItem(Minecraft.getMinecraft().player, stack, ItemCameraTransforms.TransformType.NONE);
-            } else {
-                RenderModel.render(model, stack);
-                if (stack.hasEffect() && !disableGlint) {
-                    if (stack.getItem() instanceof ItemDankNull) {
-                        final int meta = ((ItemDankNull) stack.getItem()).getTier().ordinal();
-                        if (!Options.superShine) {
-                            GlintEffectRenderer.apply(model, meta);
-                        } else {
-                            GlintEffectRenderer.apply2(model, ItemDankNull.getTier(stack).getHexColor(false));
-                        }
-                    } else {
-                        GlintEffectRenderer.apply(model, -1);
-                    }
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void renderByItem(final ItemStack item, final float partialTicks) {
-        if (item.getItem() instanceof ItemDankNull) {
-            final RenderManager rm = Minecraft.getMinecraft().getRenderManager();
-            if (rm == null) {
-                return;
-            }
-            if (model == null) {
-                final IBakedModel baseModel = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(item);
-                if (baseModel == null) {
-                    return;
-                }
-                final ItemLayerWrapper wrapper = new ItemLayerWrapper(baseModel).setRenderer(this);
-                final Item it = item.getItem();
-                if (it instanceof IModelHolder) {
-                    ((IModelHolder) it).setWrappedModel(wrapper);
-                }
-                model = wrapper;
-            }
-
-            final GameSettings options = rm.options;
-            if (options == null) {
-                return;
-            }
-            final int view = options.thirdPersonView;
-            final IDankNullHandler dankNullHandler = item.getCapability(CapabilityDankNull.DANK_NULL_CAPABILITY, null);
-            final int index = dankNullHandler.getSelected();
-            final ItemStack containedStack = index > -1 ? dankNullHandler.getFullStackInSlot(index) : ItemStack.EMPTY;
-
-            final float pbx = OpenGlHelper.lastBrightnessX;
-            final float pby = OpenGlHelper.lastBrightnessY;
-            if (getTransformType() == TransformType.FIRST_PERSON_LEFT_HAND || getTransformType() == TransformType.FIRST_PERSON_RIGHT_HAND) {
-                renderItem(item, model);
-            }
-            if (!containedStack.isEmpty()) {
-                IBakedModel containedItemModel = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(containedStack);
-
-                if (containedItemModel != null) {
-
-                    GlStateManager.pushMatrix();
-                    if (containedStack.getItem() instanceof ItemBlock && !(Block.getBlockFromItem(containedStack.getItem()) instanceof BlockTorch)) {
-                        GlStateManager.scale(0.4D, 0.4D, 0.4D);
-                        if (containedItemModel.isBuiltInRenderer()) {
-                            if (view > 0 || !isStackInHand(item)) {
-                                GlStateManager.scale(1.1D, 1.1D, 1.1D);
-                                GlStateManager.translate(1.25D, 1.4D, 1.25D);
-                            } else {
-                                GlStateManager.translate(1.25D, 2.0D, 1.25D);
-                            }
-                        } else if (view > 0 || !isStackInHand(item)) {
-                            GlStateManager.translate(0.75D, 0.9D, 0.75D);
-                        } else {
-                            GlStateManager.translate(0.75D, 1.5D, 0.75D);
-                        }
-                    } else {
-                        GlStateManager.scale(0.5D, 0.5D, 0.5D);
-                        if (containedItemModel.isBuiltInRenderer()) {
-                            if (view > 0 || !isStackInHand(item)) {
-                                if (containedStack.getItem() instanceof ItemSkull) {
-                                    if (containedStack.getItemDamage() == 5) {
-                                        GlStateManager.scale(0.65D, 0.65D, 0.65D);
-                                        GlStateManager.translate(1.5D, 3.0D, 1.5D);
-                                    } else {
-                                        GlStateManager.translate(0.75D, 2.25D, 1.1D);
-                                    }
-                                } else {
-                                    GlStateManager.scale(1.1D, 1.1D, 1.1D);
-                                    GlStateManager.translate(0.95D, 1.4D, 0.9D);
-                                }
-                            } else if (containedStack.getItem() instanceof ItemSkull) {
-                                if (containedStack.getItemDamage() == 5) {
-                                    GlStateManager.scale(0.65D, 0.65D, 0.65D);
-                                    GlStateManager.translate(1.5D, 3.0D, 1.5D);
-                                } else {
-                                    GlStateManager.translate(0.75D, 2.25D, 1.1D);
-                                }
-                            } else {
-                                GlStateManager.translate(0.75D, 2.0D, 1.0D);
-                            }
-                        } else if (view > 0 || !isStackInHand(item)) {
-                            GlStateManager.translate(0.5D, 0.9D, 0.5D);
-                        } else {
-                            GlStateManager.translate(0.5D, 1.5D, 0.5D);
-                        }
-                    }
-                    if (item.isOnItemFrame()) {
-                        GlStateManager.scale(1.25D, 1.25D, 1.25D);
-                        GlStateManager.translate(-0.2D, -0.2D, -0.5D);
-                    }
-                    if (containedItemModel.isBuiltInRenderer()) {
-                        if (containedStack.getItem() == Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK)) {
-                            GlStateManager.translate(0.0D, 1.0D, 0.0D);
-                            GlStateManager.rotate(ModGlobals.TIME, 1.0F, ModGlobals.TIME, 1.0F);
-                        } else if (containedStack.getItem() instanceof ItemDankNullPanel) {
-                            GlStateManager.rotate(ModGlobals.TIME, 1.0F, ModGlobals.TIME, 1.0F);
-                        } else if (containedStack.getItem() == Items.BANNER) {
-                            GlStateManager.rotate(ModGlobals.TIME, 1.0F, ModGlobals.TIME, 1.0F);
-                        } else {
-                            GlStateManager.translate(-0.1D, 0.0D, -0.1D);
-                            GlStateManager.rotate(ModGlobals.TIME, 1.0F, ModGlobals.TIME, 1.0F);
-                        }
-                    } else {
-                        GlStateManager.rotate(ModGlobals.TIME, 1.0F, 1.0F, 1.0F);
-                    }
-                    if (containedItemModel.getItemCameraTransforms() != null) {
-                        containedItemModel = ForgeHooksClient.handleCameraTransforms(containedItemModel, ItemCameraTransforms.TransformType.NONE, false);
-                    }
-                    final String[] registryName = containedStack.getItem().getRegistryName().toString().split(":");
-                    final String modID = registryName[0];
-                    if (modID.equalsIgnoreCase("danknull") || modID.equalsIgnoreCase("minecraft")) {
-                        if (containedStack.getItem() instanceof ItemBucket || containedStack.getItem() instanceof ItemBucketMilk) {
-                            renderItem(containedStack, Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(containedStack, Minecraft.getMinecraft().player.getEntityWorld(), Minecraft.getMinecraft().player));
-                        } else {
-                            renderItem(containedStack, containedItemModel);
-                            GlStateManager.enableBlend();
-                        }
-                    } else {
-                        renderItem(containedStack, Minecraft.getMinecraft().getRenderItem().getItemModelWithOverrides(containedStack, Minecraft.getMinecraft().player.getEntityWorld(), Minecraft.getMinecraft().player));
-                    }
-                    GlStateManager.popMatrix();
-                }
-            }
-            if (item.hasEffect()) {
-                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240F, 240F);
-            }
-            renderItem(item, model);
-
-            if (item.hasEffect()) {
-                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, pbx, pby);
-            }
-            Minecraft.getMinecraft().getTextureManager().getTexture(TextureMap.LOCATION_BLOCKS_TEXTURE).setBlurMipmap(false, true);
-        }
-    }
-
-    private boolean isStackInHand(final ItemStack itemStackIn) {
-        final EntityPlayer player = Minecraft.getMinecraft().player;
-        return player.getHeldItemMainhand() == itemStackIn || player.getHeldItemOffhand() == itemStackIn;
     }
 
     @Override
-    public TransformType getTransformType() {
-        return transformType;
+    public boolean handleRenderType(ItemStack item, ItemRenderType type) {
+        return true;
     }
 
     @Override
-    public void setTransformType(final TransformType type) {
-        transformType = type;
+    public boolean shouldUseRenderHelper(ItemRenderType type, ItemStack item, ItemRendererHelper helper) {
+        return true;
     }
 
+    @Override
+    public void renderItem(ItemRenderType type, ItemStack item, Object... data) {
+        if (item == null || !ItemDankNull.isDankNull(item)) return;
+
+        int selectedSlot = DankUtils.getSelectedSlot(item);
+        ItemStack containedStack = DankUtils.getStackInSlot(item, selectedSlot);
+
+        GL11.glPushMatrix();
+        // Position based on render type
+        switch (type) {
+            case EQUIPPED:
+            case EQUIPPED_FIRST_PERSON:
+                GL11.glTranslatef(0.5f, 0, 0.5F);
+                break;
+            case ENTITY:
+                GL11.glScaled(0.5F, 0.5F, 0.5F);
+                break;
+            case INVENTORY:
+                GL11.glTranslatef(0F, -0.5F, 0F);
+                break;
+            default:
+                break;
+        }
+
+        if (RenderItem.renderInFrame) {
+            GL11.glTranslatef(0.0F, -0.51F, 0.0F);
+        }
+
+        // Render frame
+        mc.renderEngine.bindTexture(frameTexture);
+        dankModel.renderPart("Frame");
+
+        if (containedStack != null) {
+            renderContainedItem(containedStack, type);
+        }
+
+        // Render glass with transparency
+        GL11.glEnable(GL11.GL_BLEND);
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        mc.renderEngine.bindTexture(glassTexture);
+        dankModel.renderPart("Glass");
+        GL11.glDisable(GL11.GL_BLEND);
+
+        if (item.hasEffect()) {
+            GlintEffectRenderer.renderModelGlint(tier.getGlintcolor(), dankModel, "Frame");
+            GlintEffectRenderer.renderModelGlint(tier.getGlintcolor(), dankModel, "Glass");
+        }
+
+        GL11.glPopMatrix();
+    }
+
+    private void renderContainedItem(ItemStack stack, ItemRenderType type) {
+        if (stack == null || stack.getItem() == null) return;
+
+        GL11.glPushMatrix();
+        GL11.glPushAttrib(GL11.GL_LIGHTING_BIT | GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT);
+        ItemStack renderStack = stack.copy();
+        renderStack.stackSize = 1;
+
+        float Yoffset = 0.8f;
+        float Xoffset = 0;
+
+        if (RenderItem.renderInFrame) {
+            Yoffset = 0.5f;
+            Xoffset = 0.075f;
+        }
+
+        if (type == IItemRenderer.ItemRenderType.ENTITY) {
+            Yoffset -= 0.3f;
+        }
+
+        GL11.glTranslatef(Xoffset, Yoffset, 0.0F);
+
+        float rotation = (System.currentTimeMillis() % 36000L) / 50F;
+
+        if (renderStack.getItem() instanceof ItemDankNullPanel
+            || renderStack.getItem() == Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK)) {
+            int scale = 2;
+            GL11.glTranslatef(0, -0.25f, 0.0F);
+            GL11.glScaled(scale, scale, scale);
+            GL11.glRotatef(rotation, 0F, 1F, 0F);
+        } else {
+            GL11.glRotatef(rotation, 1F, 1F, 1F);
+        }
+
+        DankEntityItem entityItem = new DankEntityItem(mc.theWorld, 0, 0, 0, renderStack);
+        // the -0.1D is to center the block for rotation
+        DankRenderItem.INSTANCE.doRender(entityItem, 0D, -0.1D, 0D, 0, 0);
+        GL11.glPopAttrib();
+        GL11.glPopMatrix();
+    }
 }

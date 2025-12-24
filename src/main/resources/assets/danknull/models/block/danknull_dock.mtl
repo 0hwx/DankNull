@@ -1,0 +1,6 @@
+# Made in Blockbench 4.12.3
+newmtl m_bce16601-d5b4-15aa-29a7-fc51f1e7681f
+map_Kd base.png
+newmtl m_40c84de0-c4ee-6353-5eb2-ec48e9743875
+map_Kd cauldron_inner.png
+newmtl none

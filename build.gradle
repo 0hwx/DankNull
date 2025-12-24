@@ -1,131 +1,13 @@
-buildscript {
-    repositories {
-        jcenter()
-		mavenLocal()
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-	dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
-        classpath "com.wynprice.cursemaven:CurseMaven:2.1.1"
-        classpath group: 'gradle.plugin.com.matthewprenger', name: 'CurseGradle', version: "1.+"
-    }
-}
 
-apply plugin: "com.wynprice.cursemaven"
-apply plugin: 'net.minecraftforge.gradle.forge'
-apply plugin: 'maven'
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'com.matthewprenger.cursegradle'
-
-idea{
-    module{
-        inheritOutputDirs = false
-        outputDir = compileJava.destinationDir
-        testOutputDir = compileTestJava.destinationDir
-    }
-}
-
-sourceCompatibility = targetCompatibility = "1.8"
-
-version = "1.12.2-" + project.modVersion
-group = "p455w0rd.danknull"
-archivesBaseName = "DankNull"
-
-minecraft {
-    version = "1.12.2-14.23.5.2846"
-    mappings = "snapshot_20180814"
-    runDir = "run"
-
-    replace '@VERSION@', project.modVersion
-    replace '@FINGERPRINT@', project.findProperty('signSHA1')
-    serverJvmArgs += "-Dfml.doNotBackup=true"
-    serverJvmArgs += "-Dfml.queryResult=confirm"
-    clientJvmArgs += "-Dfml.doNotBackup=true"
-    clientRunArgs += "-username=Dev"
+plugins {
+    id 'com.gtnewhorizons.gtnhconvention'
 }
 
 dependencies {
-    deobfCompile "curse.maven:p455w0rds-library:2830265"
-
-    deobfProvided "curse.maven:the-one-probe:2667280"
-    deobfProvided "curse.maven:jei:2803400"
-    deobfProvided "curse.maven:hwyla:2568753"
-    deobfProvided "curse.maven:chisel:2915375"
-    deobfProvided "curse.maven:ctm:2915363"
-    deobfProvided "curse.maven:extra-utilities:2678374"
-    deobfProvided "curse.maven:not-enough-items:2755792"
-    deobfProvided "curse.maven:codechicken:2779848"
-    deobfProvided "curse.maven:item-scroller:2581199"
-
-    deobfProvided "curse.maven:overloaded:2875265"
-
-    testCompile 'junit:junit:4.12'
-    testCompile "com.google.truth:truth:+"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
 }
 
-task signJar(type: SignJar, dependsOn: reobfJar) {
-    onlyIf {
-        project.hasProperty('keyStore')
-    }
-
-    keyStore = project.findProperty('keyStore')
-    alias = project.findProperty('keyStoreAlias')
-    storePass = project.findProperty('keyStorePass')
-    keyPass = project.findProperty('keyStoreKeyPass')
-    inputFile = jar.archivePath
-    outputFile = jar.archivePath
+test {
+    useJUnitPlatform()
 }
-
-reobfJar.finalizedBy(signJar)
-
-processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-    from(sourceSets.main.resources.srcDirs) {
-        include "mcmod.info"
-        expand "version": project.version, "mcversion": project.minecraft.version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude "mcmod.info"
-    }
-    rename '(.+_at.cfg)', 'META-INF/$1'
-}
-
-def curseRelations = {
-    optionalDependency 'better-builders-wands'
-    optionalDependency 'exchangers'
-    optionalDependency 'swingthroughgrass'
-    optionalDependency 'the-one-probe'
-    optionalDependency 'hwyla'
-    optionalDependency 'building-gadgets'
-    optionalDependency 'chisel'
-    optionalDependency 'jei'
-    optionalDependency 'waila'
-
-    requiredDependency 'p455w0rds-library'
-}
-
-curseforge {
-    if (project.hasProperty('curseForgeAPIKey')) {
-        apiKey = project.findProperty('curseForgeAPIKey')
-    }
-    project {
-        id = '272514'
-        changelog = file('CHANGELOG.md')
-        changelogType = 'markdown'
-        releaseType = 'beta'
-        relations curseRelations
-    }
-}
-
-// Make Gradle not Cache these so they always run
-runClient.outputs.upToDateWhen { false }
-runServer.outputs.upToDateWhen { false }

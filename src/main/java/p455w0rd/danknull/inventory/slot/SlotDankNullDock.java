@@ -1,11 +1,12 @@
 package p455w0rd.danknull.inventory.slot;
 
+import javax.annotation.Nonnull;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-import p455w0rd.danknull.api.IDankNullHandler;
 
-import javax.annotation.Nonnull;
+import p455w0rd.danknull.inventory.DankNullHandler;
+import p455w0rd.danknull.util.inv.IItemHandler;
 
 /**
  * @author p455w0rd
@@ -19,40 +20,17 @@ public class SlotDankNullDock extends SlotDankNull {
         cachedIndex = index;
     }
 
-    @Override
-    public boolean isItemValid(@Nonnull final ItemStack stack) {
-        if (stack.isEmpty() || !getItemHandler().isItemValid(cachedIndex, stack)) {
-            return false;
-        }
-
-        final IItemHandler handler = getItemHandler();
-        ItemStack remainder;
-        if (handler instanceof IDankNullHandler) {
-            final IDankNullHandler handlerModifiable = getDankNullHandler();
-            final ItemStack currentStack = handlerModifiable.getFullStackInSlot(cachedIndex);
-
-            handlerModifiable.setStackInSlot(cachedIndex, ItemStack.EMPTY);
-
-            remainder = handlerModifiable.insertItem(cachedIndex, stack, true);
-
-            handlerModifiable.setStackInSlot(cachedIndex, currentStack);
-        } else {
-            remainder = handler.insertItem(cachedIndex, stack, true);
-        }
-        return remainder.getCount() < stack.getCount();
-    }
-
     /**
      * Helper fnct to get the stack in the slot.
      */
     @Override
     @Nonnull
     public ItemStack getStack() {
-        return getDankNullHandler().getFullStackInSlot(cachedIndex);
+        return getDankNullHandler().getStackInSlot(cachedIndex);
     }
 
-    public IDankNullHandler getDankNullHandler() {
-        return (IDankNullHandler) getItemHandler();
+    public DankNullHandler getDankNullHandler() {
+        return (DankNullHandler) getItemHandler();
     }
 
     // Override if your IItemHandler does not implement IItemHandlerModifiable
@@ -70,12 +48,12 @@ public class SlotDankNullDock extends SlotDankNull {
     public int getItemStackLimit(@Nonnull final ItemStack stack) {
         final ItemStack maxAdd = stack.copy();
         final int maxInput = stack.getMaxStackSize();
-        maxAdd.setCount(maxInput);
-        final ItemStack currentStack = getDankNullHandler().getFullStackInSlot(cachedIndex);
-        getDankNullHandler().setStackInSlot(cachedIndex, ItemStack.EMPTY);
+        maxAdd.stackSize = (maxInput);
+        final ItemStack currentStack = getDankNullHandler().getStackInSlot(cachedIndex);
+        getDankNullHandler().setStackInSlot(cachedIndex, null);
         final ItemStack remainder = getDankNullHandler().insertItem(cachedIndex, maxAdd, true);
         getDankNullHandler().setStackInSlot(cachedIndex, currentStack);
-        return maxInput - remainder.getCount();
+        return maxInput - remainder.stackSize;
     }
 
     /**
@@ -83,7 +61,7 @@ public class SlotDankNullDock extends SlotDankNull {
      */
     @Override
     public boolean canTakeStack(final EntityPlayer playerIn) {
-        return !getDankNullHandler().extractItemIngoreExtractionMode(cachedIndex, 1, true).isEmpty();
+        return getDankNullHandler().extractItemIngoreExtractionMode(cachedIndex, 1, true) != null;
     }
 
     /**

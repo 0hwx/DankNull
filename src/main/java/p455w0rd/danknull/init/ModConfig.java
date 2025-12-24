@@ -1,27 +1,25 @@
 package p455w0rd.danknull.init;
 
-import com.google.common.collect.Lists;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.config.ConfigElement;
-import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fml.client.config.IConfigElement;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.oredict.OreDictionary;
-import p455w0rd.danknull.DankNull;
-import p455w0rd.danknull.network.PacketConfigSync;
-import p455w0rd.danknull.util.NonNullListSerializable;
-import p455w0rd.danknull.util.WeakHashMapSerializable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.minecraftforge.common.config.Configuration.CATEGORY_CLIENT;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.config.ConfigElement;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.oredict.OreDictionary;
+
+import com.google.common.collect.Lists;
+
+import cpw.mods.fml.client.config.IConfigElement;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import p455w0rd.danknull.DankNull;
+import p455w0rd.danknull.network.NetworkHandler;
+import p455w0rd.danknull.network.packet.SConfigSync;
 
 /**
  * @author p455w0rd
@@ -29,6 +27,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_CLIENT;
 public class ModConfig {
 
     public static final String SERVER_CAT = "Server Rules";
+    public static final String CATEGORY_CLIENT = "client";
     public static final boolean DEBUG_RESET = false;
     public static final String NAME_CREATIVE_BLACKLIST = "CreativeBlacklist";
     public static final String NAME_CREATIVE_WHITELIST = "CreativeWhitelist";
@@ -54,22 +53,57 @@ public class ModConfig {
 
     public static void load() {
         if (DEBUG_RESET) {
-            config().getConfigFile().delete();
+            config().getConfigFile()
+                .delete();
         }
         sync();
     }
 
     public static void sync() {
-        Options.callItDevNull = config().getBoolean(NAME_CALL_IT_DEVNULL, CATEGORY_CLIENT, false, "Call it a /dev/null in-game (Requested by TheMattaBase)");
+        Options.callItDevNull = config().getBoolean(
+            NAME_CALL_IT_DEVNULL,
+            CATEGORY_CLIENT,
+            false,
+            "Call it a /dev/null in-game (Requested by TheMattaBase)");
         Options.superShine = config().getBoolean(NAME_SUPERSHINE, CATEGORY_CLIENT, false, "Make items ultra shiny!");
-        Options.skipNonBlocksOnCycle = config().getBoolean(NAME_ONLY_CYCLE_BLOCKS, CATEGORY_CLIENT, false, "When cycling selected item with /dank/null in-hand, should it try to only cycle blocks?");
-        Options.creativeBlacklist = config().getString(NAME_CREATIVE_BLACKLIST, SERVER_CAT, "", "A semicolon separated list of items that are not allowed to be placed into the creative /dank/null\nFormat: modid:name:meta (meta optional: modid:name is acceptable) - Example: minecraft:diamond;minecraft:coal:1").trim();
-        Options.creativeWhitelist = config().getString(NAME_CREATIVE_WHITELIST, SERVER_CAT, "", "A semicolon separated list of items that are allowed to be placed into the creative /dank/null\nSame format as Blacklist and whitelist superceeds blacklist.\nIf whitelist is non-empty, then ONLY whitelisted items can be added to the Creative /dank/null").trim();
-        Options.oreBlacklist = config().getString(NAME_OREDICT_BLACKLIST, SERVER_CAT, "itemSkull", "A semicolon separated list of Ore Dictionary entries (strings) which WILL NOT be allowed to be used with /dank/null's Ore Dictionary functionality.");
-        Options.oreWhitelist = config().getString(NAME_OREDICT_WHITELIST, SERVER_CAT, "", "A semicolon separated list of Ore Dictionary entries (strings) which WILL BE allowed to be used with /dank/null's Ore Dictionary functionality. Whitelist superceeds blacklist.\nIf whitelist is non-empty, then ONLY Ore Dictionary items matching the entries will\nbe able to take advantage of /dank/null's Ore Dictionary functionality.");
-        Options.disableOreDictMode = config().getBoolean(NAME_DISABLE_OREDICT, SERVER_CAT, false, "If set to true, then Ore Dictionary Mode will not be available (overrides Ore Dictionary White/Black lists)");
+        Options.skipNonBlocksOnCycle = config().getBoolean(
+            NAME_ONLY_CYCLE_BLOCKS,
+            CATEGORY_CLIENT,
+            false,
+            "When cycling selected item with /dank/null in-hand, should it try to only cycle blocks?");
+        Options.creativeBlacklist = config().getString(
+            NAME_CREATIVE_BLACKLIST,
+            SERVER_CAT,
+            "",
+            "A semicolon separated list of items that are not allowed to be placed into the creative /dank/null\nFormat: modid:name:meta (meta optional: modid:name is acceptable) - Example: minecraft:diamond;minecraft:coal:1")
+            .trim();
+        Options.creativeWhitelist = config().getString(
+            NAME_CREATIVE_WHITELIST,
+            SERVER_CAT,
+            "",
+            "A semicolon separated list of items that are allowed to be placed into the creative /dank/null\nSame format as Blacklist and whitelist superceeds blacklist.\nIf whitelist is non-empty, then ONLY whitelisted items can be added to the Creative /dank/null")
+            .trim();
+        Options.oreBlacklist = config().getString(
+            NAME_OREDICT_BLACKLIST,
+            SERVER_CAT,
+            "itemSkull",
+            "A semicolon separated list of Ore Dictionary entries (strings) which WILL NOT be allowed to be used with /dank/null's Ore Dictionary functionality.");
+        Options.oreWhitelist = config().getString(
+            NAME_OREDICT_WHITELIST,
+            SERVER_CAT,
+            "",
+            "A semicolon separated list of Ore Dictionary entries (strings) which WILL BE allowed to be used with /dank/null's Ore Dictionary functionality. Whitelist superceeds blacklist.\nIf whitelist is non-empty, then ONLY Ore Dictionary items matching the entries will\nbe able to take advantage of /dank/null's Ore Dictionary functionality.");
+        Options.disableOreDictMode = config().getBoolean(
+            NAME_DISABLE_OREDICT,
+            SERVER_CAT,
+            false,
+            "If set to true, then Ore Dictionary Mode will not be available (overrides Ore Dictionary White/Black lists)");
         Options.showHUD = config().getBoolean("showHUD", CATEGORY_CLIENT, true, "Show the /dank/null HUD overlay?");
-        Options.allowDockInserting = config().getBoolean(NAME_ALLOW_DOCK_INSERTION, SERVER_CAT, true, "If true, you will be able to pipe items into the /dank/null Docking Station");
+        Options.allowDockInserting = config().getBoolean(
+            NAME_ALLOW_DOCK_INSERTION,
+            SERVER_CAT,
+            true,
+            "If true, you will be able to pipe items into the /dank/null Docking Station");
         if (config().hasChanged()) {
             config().save();
         }
@@ -80,23 +114,18 @@ public class ModConfig {
         return new ConfigElement(getInstance().getCategory(CATEGORY_CLIENT)).getChildElements();
     }
 
-    @SideOnly(Side.SERVER)
     public static void sendConfigsToClient(final EntityPlayerMP player) {
-        final WeakHashMapSerializable<String, Object> map = new WeakHashMapSerializable<>();
-        map.put(ModConfig.NAME_CREATIVE_BLACKLIST, Options.creativeBlacklist);
-        map.put(ModConfig.NAME_CREATIVE_WHITELIST, Options.creativeWhitelist);
-        map.put(ModConfig.NAME_OREDICT_BLACKLIST, Options.oreBlacklist);
-        map.put(ModConfig.NAME_OREDICT_WHITELIST, Options.oreWhitelist);
-        map.put(ModConfig.NAME_DISABLE_OREDICT, Options.disableOreDictMode);
-        ModNetworking.getInstance().sendTo(new PacketConfigSync(map), player);
+        NetworkHandler.sendToPlayer(new SConfigSync(), player);
     }
 
     public static boolean isOreDictBlacklistEnabled() {
-        return !Options.getOreBlacklist().isEmpty() && !isOreDictWhitelistEnabled();
+        return !Options.getOreBlacklist()
+            .isEmpty() && !isOreDictWhitelistEnabled();
     }
 
     public static boolean isOreDictWhitelistEnabled() {
-        return !Options.getOreWhitelist().isEmpty();
+        return !Options.getOreWhitelist()
+            .isEmpty();
     }
 
     public static boolean isOreBlacklisted(final String oreName) {
@@ -167,17 +196,17 @@ public class ModConfig {
     public static class Options {
 
         public static boolean callItDevNull = false;
-        public static boolean superShine = false;
+        public static boolean superShine = false; // need to add it
         public static String creativeBlacklist = "";
         public static String creativeWhitelist = "";
         public static String oreBlacklist = "";
         public static String oreWhitelist = "";
         public static boolean showHUD = true;
         public static boolean disableOreDictMode = false;
-        public static boolean allowDockInserting = true;
+        public static boolean allowDockInserting = true; // need to add it
         public static boolean skipNonBlocksOnCycle = false;
-        private static NonNullListSerializable<ItemStack> creativeItemBlacklist;
-        private static NonNullListSerializable<ItemStack> creativeItemWhitelist;
+        private static List<ItemStack> creativeItemBlacklist;
+        private static List<ItemStack> creativeItemWhitelist;
         private static ArrayList<String> oreStringBlacklist = Lists.newArrayList();
         private static ArrayList<String> oreStringWhitelist = Lists.newArrayList();
 
@@ -211,26 +240,29 @@ public class ModConfig {
             return oreStringWhitelist;
         }
 
-        public static NonNullListSerializable<ItemStack> getCreativeBlacklistedItems() throws Exception {
+        public static List<ItemStack> getCreativeBlacklistedItems() throws Exception {
             if (creativeItemBlacklist == null && getCreativeWhitelistedItems().isEmpty()) {
-                creativeItemBlacklist = (NonNullListSerializable<ItemStack>) NonNullListSerializable.<ItemStack>create();
+                creativeItemBlacklist = new ArrayList<>();
                 if (!creativeBlacklist.isEmpty()) {
                     final List<String> itemStringList = Lists.newArrayList(creativeBlacklist.split(";"));
                     for (final String itemString : itemStringList) {
                         final String[] params = itemString.split(":");
                         final int numColons = params.length - 1;
                         if (numColons > 2 || numColons <= 0) {
-                            throw new Exception(new Throwable("Invalid format for item blacklisting, check " + config().getConfigFile() + " for an example"));
+                            throw new Exception(
+                                new Throwable(
+                                    "Invalid format for item blacklisting, check " + config().getConfigFile()
+                                        + " for an example"));
                         }
-                        if (numColons == 1) { //no meta
-                            final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(params[0], params[1]));
+                        if (numColons == 1) { // no meta
+                            final Item item = GameRegistry.findItem(params[0], params[1]);
                             if (item == null) {
                                 DankNull.LOGGER.warn("Item \"" + params[0] + ":" + params[1] + "\" not found");
                             } else {
                                 creativeItemBlacklist.add(new ItemStack(item));
                             }
                         } else if (numColons == 2) {
-                            final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(params[0], params[1]));
+                            final Item item = GameRegistry.findItem(params[0], params[1]);
                             if (item == null) {
                                 DankNull.LOGGER.warn("Item \"" + params[0] + ":" + params[1] + "\" not found");
                             } else {
@@ -241,7 +273,13 @@ public class ModConfig {
                                     meta = -1;
                                 }
                                 if (meta < 0) {
-                                    DankNull.LOGGER.warn("Invalid metadata for item \"" + params[0] + ":" + params[1] + "\" (" + params[2] + ")");
+                                    DankNull.LOGGER.warn(
+                                        "Invalid metadata for item \"" + params[0]
+                                            + ":"
+                                            + params[1]
+                                            + "\" ("
+                                            + params[2]
+                                            + ")");
                                 } else {
                                     creativeItemWhitelist.add(new ItemStack(item, 1, meta));
                                 }
@@ -253,26 +291,29 @@ public class ModConfig {
             return creativeItemBlacklist;
         }
 
-        public static NonNullListSerializable<ItemStack> getCreativeWhitelistedItems() throws Exception {
+        public static List<ItemStack> getCreativeWhitelistedItems() throws Exception {
             if (creativeItemWhitelist == null) {
-                creativeItemWhitelist = (NonNullListSerializable<ItemStack>) NonNullListSerializable.<ItemStack>create();
+                creativeItemWhitelist = new ArrayList<>();
                 if (!creativeWhitelist.isEmpty()) {
                     final List<String> itemStringList = Lists.newArrayList(creativeWhitelist.split(";"));
                     for (final String itemString : itemStringList) {
                         final String[] params = itemString.split(":");
                         final int numColons = params.length - 1;
                         if (numColons > 2 || numColons <= 0) {
-                            throw new Exception(new Throwable("Invalid format for item whitelisting, check " + config().getConfigFile() + " for an example"));
+                            throw new Exception(
+                                new Throwable(
+                                    "Invalid format for item whitelisting, check " + config().getConfigFile()
+                                        + " for an example"));
                         }
-                        if (numColons == 1) { //no meta
-                            final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(params[0], params[1]));
+                        if (numColons == 1) { // no meta
+                            final Item item = GameRegistry.findItem(params[0], params[1]);
                             if (item == null) {
                                 DankNull.LOGGER.warn("Item \"" + params[0] + ":" + params[1] + "\" not found");
                             } else {
                                 creativeItemWhitelist.add(new ItemStack(item));
                             }
                         } else if (numColons == 2) {
-                            final Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(params[0], params[1]));
+                            final Item item = GameRegistry.findItem(params[0], params[1]);
                             if (item == null) {
                                 DankNull.LOGGER.warn("Item \"" + params[0] + ":" + params[1] + "\" not found");
                             } else {
@@ -283,7 +324,13 @@ public class ModConfig {
                                     meta = -1;
                                 }
                                 if (meta < 0) {
-                                    DankNull.LOGGER.warn("Invalid metadata for item \"" + params[0] + ":" + params[1] + "\" (" + params[2] + ")");
+                                    DankNull.LOGGER.warn(
+                                        "Invalid metadata for item \"" + params[0]
+                                            + ":"
+                                            + params[1]
+                                            + "\" ("
+                                            + params[2]
+                                            + ")");
                                 } else {
                                     creativeItemWhitelist.add(new ItemStack(item, 1, meta));
                                 }

@@ -1,30 +1,34 @@
 package p455w0rd.danknull.client.render;
 
+import java.util.Locale;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.translation.I18n;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.Configuration;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+
+import org.lwjgl.opengl.GL11;
+
+import cpw.mods.fml.client.config.GuiUtils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import p455w0rd.danknull.DankNull;
+import p455w0rd.danknull.api.DankNullItemModes.ItemExtractionMode;
 import p455w0rd.danknull.api.DankNullItemModes.ItemPlacementMode;
-import p455w0rd.danknull.api.IDankNullHandler;
+import p455w0rd.danknull.api.DankNullTier;
+import p455w0rd.danknull.client.KeyBindings;
 import p455w0rd.danknull.init.ModConfig;
 import p455w0rd.danknull.init.ModConfig.Options;
-import p455w0rd.danknull.init.ModGlobals;
-import p455w0rd.danknull.init.ModGlobals.DankNullTier;
-import p455w0rd.danknull.init.ModKeyBindings;
 import p455w0rd.danknull.inventory.DankNullHandler;
-import p455w0rd.danknull.inventory.cap.CapabilityDankNull;
 import p455w0rd.danknull.items.ItemDankNull;
-import p455w0rdslib.util.GuiUtils;
-import p455w0rdslib.util.RenderUtils;
-
-import java.util.Locale;
+import p455w0rd.danknull.util.DankUtils;
 
 /**
  * @author p455w0rd
@@ -33,65 +37,160 @@ public class HUDRenderer {
 
     @SideOnly(Side.CLIENT)
     public static void renderHUD(final Minecraft mc, final ScaledResolution scaledRes) {
-        if (!Options.showHUD || !mc.playerController.shouldDrawHUD() && !mc.player.capabilities.isCreativeMode) {
+        if (!Options.showHUD || !mc.playerController.shouldDrawHUD() && !mc.thePlayer.capabilities.isCreativeMode) {
             return;
         }
-        ItemStack currentItem = mc.player.inventory.getCurrentItem();
-        if (currentItem.isEmpty() || !ItemDankNull.isDankNull(currentItem)) {
-            currentItem = mc.player.getHeldItemOffhand();
+
+        ItemStack currentItem = mc.thePlayer.inventory.getCurrentItem();
+        if (currentItem == null || !ItemDankNull.isDankNull(currentItem)) return;
+
+        NBTTagCompound nbt = currentItem.getTagCompound();
+        if (nbt == null || !nbt.hasKey(DankNullHandler.NBT.DANKNULL_CAP)) return;
+
+        NBTTagCompound cap = nbt.getCompoundTag(DankNullHandler.NBT.DANKNULL_CAP);
+        int selectedIndex = cap.getInteger(DankNullHandler.NBT.SELECTEDINDEX);
+
+        // Find the specific NBT compound for the selected slot
+        NBTTagCompound itemTag = DankUtils.getSlotTag(cap, selectedIndex);
+        if (itemTag == null) return;
+
+        ItemStack selectedStack = ItemStack.loadItemStackFromNBT(itemTag);
+        if (selectedStack == null) return;
+
+        int count = itemTag.getInteger("Count");
+        // Pull settings from the new DankSettings sub-compound
+        NBTTagCompound settings = itemTag.getCompoundTag(DankNullHandler.NBT.DANK_SETTINGS);
+        ItemPlacementMode pMode = ItemPlacementMode.VALUES[settings.getByte(DankNullHandler.NBT.PLACEMENT_MODE)];
+        ItemExtractionMode eMode = ItemExtractionMode.VALUES[settings.getByte(DankNullHandler.NBT.EXTRACTION_MODE)];
+        boolean oreDict = settings.getBoolean(DankNullHandler.NBT.OREDICT);
+
+        DankNullTier tier = DankNullTier.getTier(currentItem);
+
+        renderHUDContents(mc, scaledRes, currentItem, count, selectedStack, tier, pMode, eMode, oreDict);
+    }
+
+    private static void renderHUDContents(Minecraft mc, ScaledResolution scaledRes, ItemStack stack, int stackSize,
+        ItemStack selectedStack, DankNullTier tier, ItemPlacementMode pMode, ItemExtractionMode eMode,
+        boolean oreDictEnabled) {
+        final TextureManager tm = mc.renderEngine;
+        if (tm == null) return;
+
+        tm.bindTexture(new ResourceLocation(DankNull.MODID, "textures/gui/danknullscreen0.png"));
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glColor4f(1f, 1f, 1f, 1f);
+
+        GuiUtils.drawTexturedModalRect(
+            scaledRes.getScaledWidth() - 106,
+            scaledRes.getScaledHeight() - 45,
+            0,
+            210,
+            106,
+            45,
+            0);
+
+        GL11.glPushMatrix();
+        GL11.glScalef(0.5F, 0.5F, 0.5F);
+
+        String dankNullName = stack.getDisplayName();
+        mc.fontRenderer.drawStringWithShadow(
+            dankNullName,
+            scaledRes.getScaledWidth() * 2 - 212 + 55,
+            scaledRes.getScaledHeight() * 2 - 83,
+            tier.getHexColor(true));
+
+        // Selected stack info
+        String selectedName = selectedStack.getDisplayName();
+        int maxWidth = 88;
+        if (mc.fontRenderer.getStringWidth(selectedName) > maxWidth) {
+            selectedName = selectedName.substring(0, 14)
+                .trim() + "...";
         }
-        if (!currentItem.isEmpty() && ItemDankNull.isDankNull(currentItem)) {
-            final IDankNullHandler dankNullHandler = currentItem.getCapability(CapabilityDankNull.DANK_NULL_CAPABILITY, null);
-            if (dankNullHandler.getSelected() < 0) {
-                return;
-            }
-            final ItemStack selectedStack = dankNullHandler.getFullStackInSlot(dankNullHandler.getSelected());
-            final TextureManager tm = mc.renderEngine;
-            if (tm != null && !selectedStack.isEmpty()) {
 
-                tm.bindTexture(new ResourceLocation(ModGlobals.MODID, "textures/gui/danknullscreen0.png"));
-                GlStateManager.enableBlend();
-                GlStateManager.enableAlpha();
-                GuiUtils.drawTexturedModalRect(scaledRes.getScaledWidth() - 106, scaledRes.getScaledHeight() - 45, 0, 210, 106, 45, 0);
-                GlStateManager.pushMatrix();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                GlStateManager.scale(0.5F, 0.5F, 0.5F);
-                mc.fontRenderer.drawStringWithShadow(currentItem.getDisplayName(), scaledRes.getScaledWidth() * 2 - 212 + 55, scaledRes.getScaledHeight() * 2 - 83, dankNullHandler.getTier().getHexColor(true));
-                String selectedStackName = selectedStack.getDisplayName();
-                final int itemNameWidth = mc.fontRenderer.getStringWidth(selectedStackName);
-                if (itemNameWidth >= 88 && selectedStackName.length() >= 14) {
-                    selectedStackName = selectedStackName.substring(0, 14).trim() + "...";
-                }
-                final ItemPlacementMode placementMode = dankNullHandler.getPlacementMode(selectedStack);
-                mc.fontRenderer.drawStringWithShadow(I18n.translateToLocal("dn.selected_item.desc") + ": " + selectedStackName, scaledRes.getScaledWidth() * 2 - 212 + 45, scaledRes.getScaledHeight() * 2 - 72, 16777215);
-                mc.fontRenderer.drawStringWithShadow(I18n.translateToLocal("dn.count.desc") + ": " + (ItemDankNull.getTier(currentItem) == DankNullTier.CREATIVE ? "Infinite" : selectedStack.getCount()), scaledRes.getScaledWidth() * 2 - 212 + 45, scaledRes.getScaledHeight() * 2 - 61, 16777215);
-                mc.fontRenderer.drawStringWithShadow(I18n.translateToLocal("dn.place.desc") + ": " + placementMode.getTooltip().replace(I18n.translateToLocal("dn.extract.desc").toLowerCase(Locale.ENGLISH), I18n.translateToLocal("dn.place.desc").toLowerCase(Locale.ENGLISH)).replace(I18n.translateToLocal("dn.extract.desc"), I18n.translateToLocal("dn.place.desc")), scaledRes.getScaledWidth() * 2 - 212 + 45, scaledRes.getScaledHeight() * 2 - 50, 16777215);
-                mc.fontRenderer.drawStringWithShadow(I18n.translateToLocal("dn.extract.desc") + ": " + dankNullHandler.getExtractionMode(selectedStack).getTooltip(), scaledRes.getScaledWidth() * 2 - 212 + 45, scaledRes.getScaledHeight() * 2 - 40, 16777215);
+        mc.fontRenderer.drawStringWithShadow(
+            StatCollector.translateToLocal("dn.selected_item.desc") + ": " + selectedName,
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 72,
+            16777215);
+        mc.fontRenderer.drawStringWithShadow(
+            StatCollector.translateToLocal("dn.count.desc") + ": "
+                + (DankNullTier.getTier(stack) == DankNullTier.CREATIVE ? "Infinite" : stackSize),
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 61,
+            16777215);
+        mc.fontRenderer.drawStringWithShadow(
+            StatCollector.translateToLocal("dn.place.desc") + ": "
+                + pMode.getTooltip()
+                    .replace(
+                        StatCollector.translateToLocal("dn.extract.desc")
+                            .toLowerCase(Locale.ENGLISH),
+                        StatCollector.translateToLocal("dn.place.desc")
+                            .toLowerCase(Locale.ENGLISH))
+                    .replace(
+                        StatCollector.translateToLocal("dn.extract.desc"),
+                        StatCollector.translateToLocal("dn.place.desc")),
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 50,
+            16777215);
+        mc.fontRenderer.drawStringWithShadow(
+            StatCollector.translateToLocal("dn.extract.desc") + ": " + eMode.getTooltip(),
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 40,
+            16777215);
+        mc.fontRenderer.drawStringWithShadow(
+            StatCollector.translateToLocal("dn.extract.desc") + ": ",
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 40,
+            16777215);
 
-                final String keyBind = ModKeyBindings.getOpenDankNullKeyBind().getDisplayName();
-                mc.fontRenderer.drawStringWithShadow(keyBind.equalsIgnoreCase("none") ? I18n.translateToLocal("dn.no_open_keybind.desc") : I18n.translateToLocal("dn.open_with.desc") + " " + keyBind, scaledRes.getScaledWidth() * 2 - 212 + 45, scaledRes.getScaledHeight() * 2 - 29, 16777215);
-                String oreDictMode = I18n.translateToLocal("dn.ore_dictionary.desc") + ": " + (dankNullHandler.isOre(selectedStack) ? I18n.translateToLocal("dn.enabled.desc") : I18n.translateToLocal("dn.disabled.desc"));
-                final boolean isOreDicted = DankNullHandler.getOreNames(selectedStack).size() > 0;
-                if (!isOreDicted) {
-                    oreDictMode = I18n.translateToLocal("dn.not_oredicted.desc");
-                }
-
-                mc.fontRenderer.drawStringWithShadow(oreDictMode, scaledRes.getScaledWidth() * 2 - 212 + 45, scaledRes.getScaledHeight() * 2 - 18, 16777215);
-
-                RenderHelper.enableGUIStandardItemLighting();
-                GlStateManager.popMatrix();
-                GlStateManager.pushMatrix();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                RenderUtils.getRenderItem().renderItemAndEffectIntoGUI(currentItem, scaledRes.getScaledWidth() - 106 + 5, scaledRes.getScaledHeight() - 20);
-                GlStateManager.popMatrix();
-            }
+        final String keyBind = GameSettings.getKeyDisplayString(KeyBindings.openDankNull.getKeyCode());
+        mc.fontRenderer.drawStringWithShadow(
+            keyBind.equalsIgnoreCase("none") ? StatCollector.translateToLocal("dn.no_open_keybind.desc")
+                : StatCollector.translateToLocal("dn.open_with.desc") + " " + keyBind,
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 29,
+            16777215);
+        String oreDictMode = StatCollector.translateToLocal("dn.ore_dictionary.desc") + ": "
+            + (oreDictEnabled ? StatCollector.translateToLocal("dn.enabled.desc")
+                : StatCollector.translateToLocal("dn.disabled.desc"));
+        final boolean isOreDicted = DankUtils.getOreNames(selectedStack)
+            .size() > 0;
+        if (!isOreDicted) {
+            oreDictMode = StatCollector.translateToLocal("dn.not_oredicted.desc");
         }
+
+        mc.fontRenderer.drawStringWithShadow(
+            oreDictMode,
+            scaledRes.getScaledWidth() * 2 - 212 + 45,
+            scaledRes.getScaledHeight() * 2 - 18,
+            16777215);
+
+        GL11.glPopMatrix();
+
+        // Draw item icon
+        RenderHelper.enableGUIStandardItemLighting();
+        GL11.glPushMatrix();
+        GL11.glColor4f(1f, 1f, 1f, 1f);
+        RenderItem.getInstance()
+            .renderItemAndEffectIntoGUI(
+                mc.fontRenderer,
+                mc.renderEngine,
+                stack,
+                scaledRes.getScaledWidth() - 106 + 5,
+                scaledRes.getScaledHeight() - 20);
+        GL11.glPopMatrix();
+
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
     }
 
     public static void toggleHUD() {
         Options.showHUD = !Options.showHUD;
-        ModConfig.getInstance().get(Configuration.CATEGORY_CLIENT, "showHUD", true).setValue(Options.showHUD);
-        ModConfig.getInstance().save();
+        ModConfig.getInstance()
+            .get(Configuration.CATEGORY_GENERAL, "showHUD", true)
+            .setValue(Options.showHUD);
+        ModConfig.getInstance()
+            .save();
     }
-
 }
