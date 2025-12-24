@@ -1,13 +1,16 @@
 package p455w0rd.danknull.proxy;
 
+import codechicken.nei.guihook.GuiContainerManager;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import p455w0rd.danknull.client.KeyBindings;
+import p455w0rd.danknull.client.gui.NEITooltipHandler;
 import p455w0rd.danknull.init.ModCreativeTab;
-import p455w0rd.danknull.init.ModIntegration;
 import p455w0rd.danknull.init.ModItems;
+import p455w0rd.danknull.integration.Mods;
+import p455w0rd.danknull.integration.WAILA;
 
 public class ClientProxy extends CommonProxy {
 
@@ -21,13 +24,18 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void init(final FMLInitializationEvent e) {
         super.init(e);
-        ModIntegration.init();
+        if (Mods.WAILA.isLoaded()) {
+            WAILA.init();
+        }
     }
 
     @Override
     public void postInit(final FMLPostInitializationEvent e) {
         super.postInit(e);
         ModItems.registerRenders();
+        if (Mods.NEI.isLoaded()) {
+            GuiContainerManager.addTooltipHandler(new NEITooltipHandler());
+        }
     }
 
     @Override

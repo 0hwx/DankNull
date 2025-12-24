@@ -16,6 +16,7 @@ import p455w0rd.danknull.proxy.CommonProxy;
     name = DankNull.NAME,
     version = DankNull.VERSION,
     guiFactory = DankNull.GUI_FACTORY,
+    dependencies = "after:Waila",
     acceptedMinecraftVersions = "[1.7.10]",
     certificateFingerprint = "@FINGERPRINT@")
 public class DankNull {

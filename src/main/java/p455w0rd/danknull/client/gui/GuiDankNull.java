@@ -28,8 +28,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import codechicken.nei.guihook.IContainerTooltipHandler;
-import cpw.mods.fml.common.Optional;
 import p455w0rd.danknull.api.DankNullItemModes.ItemExtractionMode;
 import p455w0rd.danknull.api.DankNullItemModes.ItemPlacementMode;
 import p455w0rd.danknull.api.DankNullTier;
@@ -50,8 +48,7 @@ import yalter.mousetweaks.api.MouseTweaksIgnore;
  * @author p455w0rd
  */
 @MouseTweaksIgnore
-@Optional.Interface(modid = "NotEnoughItems", iface = "codechicken.nei.guihook.IContainerTooltipHandler")
-public class GuiDankNull extends GuiContainer implements IContainerTooltipHandler {
+public class GuiDankNull extends GuiContainer {
 
     private final DankNullTier tier;
     private ResourceLocation backgroundTexture;
@@ -430,34 +427,13 @@ public class GuiDankNull extends GuiContainer implements IContainerTooltipHandle
         return Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
     }
 
-    @Override
-    @Optional.Method(modid = "NotEnoughItems")
-    public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
-        List<String> currenttip) {
-        Slot s = getSlotAtPosition(mousex, mousey);
-        if (itemstack == null) return currenttip;
-        List<String> list = itemstack
-            .getTooltip(Minecraft.getMinecraft().thePlayer, mc.gameSettings.advancedItemTooltips);
-        // clear only the slot from the list so NEI renders nothing
-        if (s instanceof Slot) {
-            renderToolTip(itemstack, list, mousex, mousey);
-            currenttip.clear();
-        }
-
-        return currenttip;
-    }
-
+    // add chisel and thaumcraft
     @Override
     protected void renderToolTip(final ItemStack stack, final int x, final int y) {
         if (stack == null) return;
 
         List<String> list = stack.getTooltip(Minecraft.getMinecraft().thePlayer, mc.gameSettings.advancedItemTooltips);
 
-        renderToolTip(stack, list, x, y);
-    }
-
-    // fix waila text , add chisel and thaumcraft
-    private void renderToolTip(ItemStack stack, List<String> list, int x, int y) {
         for (int i = 0; i < list.size(); ++i) {
             if (i == 0) {
                 list.set(
@@ -468,6 +444,7 @@ public class GuiDankNull extends GuiContainer implements IContainerTooltipHandle
                 list.set(i, EnumChatFormatting.GRAY + list.get(i));
             }
         }
+
         final Slot s = getSlotAtPosition(x, y);
         final DankNullHandler dankNullHandler = getDankNullHandler();
         if (s instanceof SlotDankNull && s.getHasStack()) {
@@ -562,6 +539,7 @@ public class GuiDankNull extends GuiContainer implements IContainerTooltipHandle
 
             }
         }
+
         drawToolTipWithBorderColor(
             this,
             list,
