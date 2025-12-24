@@ -7,7 +7,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.model.AdvancedModelLoader;
 import net.minecraftforge.client.model.IModelCustom;
 
@@ -29,7 +28,6 @@ public class DankNullRenderer implements IItemRenderer {
         .loadModel(new ResourceLocation("danknull", "models/item/dank_null.obj"));
     private final ResourceLocation frameTexture = new ResourceLocation("danknull", "textures/items/danknull/frame.png");
     private final ResourceLocation glassTexture;
-    private static final ResourceLocation GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
     public DankNullRenderer(DankNullTier tier) {
         this.tier = tier;
@@ -125,12 +123,12 @@ public class DankNullRenderer implements IItemRenderer {
 
         float rotation = (System.currentTimeMillis() % 36000L) / 50F;
 
-        if (renderStack.getItem() instanceof ItemDankNullPanel || renderStack.getItem() == Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK)) {
+        if (renderStack.getItem() instanceof ItemDankNullPanel
+            || renderStack.getItem() == Item.getItemFromBlock(ModBlocks.DANKNULL_DOCK)) {
             int scale = 2;
             GL11.glTranslatef(0, -0.25f, 0.0F);
-            GL11.glScaled(scale,scale,scale);
+            GL11.glScaled(scale, scale, scale);
             GL11.glRotatef(rotation, 0F, 1F, 0F);
-
         } else {
             GL11.glRotatef(rotation, 1F, 1F, 1F);
         }
