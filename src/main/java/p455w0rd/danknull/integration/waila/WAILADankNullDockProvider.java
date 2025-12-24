@@ -23,7 +23,6 @@ import p455w0rd.danknull.inventory.DankNullHandler;
  * @author p455w0rd
  *
  */
-// spotless:off
 public class WAILADankNullDockProvider implements IWailaDataProvider {
 
     @Override
@@ -55,7 +54,9 @@ public class WAILADankNullDockProvider implements IWailaDataProvider {
                 currenttip.add(WAILA.toolTipEnclose);
 
                 // Tier color and name
-                EnumChatFormatting colorCode = DankNullTier.Rarities.getRarityFromMeta(DankNullTier.getTier(dockedDankNull).ordinal()).rarityColor;
+                EnumChatFormatting colorCode = DankNullTier.Rarities.getRarityFromMeta(
+                    DankNullTier.getTier(dockedDankNull)
+                        .ordinal()).rarityColor;
                 currenttip.add(colorCode + dockedDankNull.getDisplayName() + EnumChatFormatting.GRAY + " Docked");
 
                 DankNullHandler handler = dankDock.getDankHandler();
@@ -66,14 +67,19 @@ public class WAILADankNullDockProvider implements IWailaDataProvider {
                     if (selectedIndex >= 0 && selectedIndex < handler.getSlots()) {
                         ItemStack selectedStack = handler.getStackInSlot(selectedIndex);
                         if (selectedStack != null) {
-                            currenttip.add(selectedStack.getDisplayName() + " " + StatCollector.translateToLocal("dn.selected.desc"));
+                            currenttip.add(
+                                selectedStack.getDisplayName() + " "
+                                    + StatCollector.translateToLocal("dn.selected.desc"));
 
                             String countDisplay = (DankNullTier.getTier(dockedDankNull) == DankNullTier.CREATIVE)
                                 ? StatCollector.translateToLocal("dn.infinite.desc")
                                 : String.valueOf(selectedStack.stackSize);
 
                             currenttip.add(StatCollector.translateToLocal("dn.count.desc") + ": " + countDisplay);
-                            currenttip.add(StatCollector.translateToLocal("dn.extract_mode.desc") + ": " + handler.getExtractionMode(selectedIndex).getTooltip());
+                            currenttip.add(
+                                StatCollector.translateToLocal("dn.extract_mode.desc") + ": "
+                                    + handler.getExtractionMode(selectedIndex)
+                                        .getTooltip());
                         }
                     }
                 }
