@@ -12,6 +12,7 @@ public enum Mods {
 
     // spotless:off
     WAILA("Waila"),
+    NEI("NotEnoughItems"),
 
     ;
     //spotless:on
