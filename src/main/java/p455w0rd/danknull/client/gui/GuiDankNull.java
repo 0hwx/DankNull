@@ -66,6 +66,10 @@ public class GuiDankNull extends GuiContainer {
         return ((ContainerDankNull) inventorySlots).getHandler();
     }
 
+    public boolean isDock() {
+        return ((ContainerDankNull) inventorySlots).isDock();
+    }
+
     @Override
     public void initGui() {
         super.initGui();
@@ -369,7 +373,7 @@ public class GuiDankNull extends GuiContainer {
             int index = hoveredSlot.getSlotIndex();
 
             // Check P Key
-            if (Keyboard.isKeyDown(Keyboard.KEY_P)) {
+            if (!isDock() && Keyboard.isKeyDown(Keyboard.KEY_P)) {
                 ItemPlacementMode nextMode = handler.getNextPlacementMode(index, true);
                 handler.setPlacementMode(index, nextMode);
                 syncPacket = new CChangeMode(nextMode, index);
@@ -466,7 +470,7 @@ public class GuiDankNull extends GuiContainer {
                     + EnumChatFormatting.ITALIC
                     + "  "
                     + StatCollector.translateToLocal("dn.ctrl_click_change.desc"));
-            if (isSelectedStackABlock) {
+            if (!isDock() && isSelectedStackABlock) {
                 list.add(
                     2,
                     EnumChatFormatting.GRAY + ""
@@ -482,7 +486,7 @@ public class GuiDankNull extends GuiContainer {
                         + "  "
                         + StatCollector.translateToLocal("dn.alt_click_set.desc"));
             }
-            if (placementMode != null && isSelectedStackABlock) {
+            if (!isDock() && placementMode != null && isSelectedStackABlock) {
                 list.add(
                     1,
                     StatCollector.translateToLocal("dn.placement_mode.desc") + ": "
