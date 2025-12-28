@@ -147,7 +147,7 @@ public abstract class ContainerDankNull extends Container {
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-        Slot slot = (Slot) this.inventorySlots.get(index);
+        Slot slot = this.inventorySlots.get(index);
         if (slot == null || !slot.getHasStack()) {
             return null;
         }

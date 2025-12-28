@@ -13,6 +13,16 @@ import codechicken.nei.guihook.IContainerTooltipHandler;
 public class NEITooltipHandler implements IContainerTooltipHandler {
 
     @Override
+    public List<String> handleTooltip(GuiContainer gui, int mousex, int mousey, List<String> currenttip) {
+        return currenttip;
+    }
+
+    @Override
+    public List<String> handleItemDisplayName(GuiContainer gui, ItemStack itemstack, List<String> currenttip) {
+        return currenttip;
+    }
+
+    @Override
     public List<String> handleItemTooltip(GuiContainer gui, ItemStack itemstack, int mousex, int mousey,
         List<String> currenttip) {
         if (gui instanceof GuiDankNull guiDankNull) {

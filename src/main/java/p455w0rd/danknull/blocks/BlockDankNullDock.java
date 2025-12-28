@@ -135,8 +135,7 @@ public class BlockDankNullDock extends BlockContainer {
     @Override
     public void breakBlock(World world, int x, int y, int z, Block block, int meta) {
         TileEntity te = world.getTileEntity(x, y, z);
-        if (te instanceof TileDankNullDock) {
-            TileDankNullDock dock = (TileDankNullDock) te;
+        if (te instanceof TileDankNullDock dock) {
             ItemStack stack = dock.getDankNull();
 
             if (stack != null) {
