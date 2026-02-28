@@ -15,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 
 import com.google.common.collect.ImmutableList;
 
@@ -369,8 +370,14 @@ public class DankNullHandler extends ItemStackHandler {
             int slot = itemTags.getInteger("Slot");
             if (slot >= 0 && slot < this.stacks.size()) {
                 ItemStack loadedStack = ItemStack.loadItemStackFromNBT(itemTags);
-                if (loadedStack != null && itemTags.hasKey("DankCount")) {
-                    loadedStack.stackSize = itemTags.getInteger("DankCount");
+                if (loadedStack != null) {
+                    if (itemTags.hasKey("DankCount", Constants.NBT.TAG_INT)) {
+                        // New saves
+                        loadedStack.stackSize = itemTags.getInteger("DankCount");
+                    } else if (itemTags.hasKey("Count", Constants.NBT.TAG_INT)) {
+                        // Migrate old saves
+                        loadedStack.stackSize = itemTags.getInteger("Count");
+                    }
                 }
                 this.stacks.set(slot, loadedStack);
 
