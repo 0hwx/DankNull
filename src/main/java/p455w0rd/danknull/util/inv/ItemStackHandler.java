@@ -147,12 +147,12 @@ public class ItemStackHandler implements IItemHandlerModifiable, INBTSerializabl
         NBTTagList nbtTagList = new NBTTagList();
 
         for (int i = 0; i < this.stacks.size(); ++i) {
-            if (this.stacks.get(i) != null) {
+            ItemStack stack = this.stacks.get(i);
+            if (stack != null) {
                 NBTTagCompound itemTag = new NBTTagCompound();
                 itemTag.setInteger("Slot", i);
-                this.stacks.get(i)
-                    .writeToNBT(itemTag);
-                itemTag.setInteger("Count", stacks.get(i).stackSize);
+                stack.writeToNBT(itemTag);
+                itemTag.setInteger("DankCount", stack.stackSize);
                 nbtTagList.appendTag(itemTag);
             }
         }
@@ -173,9 +173,16 @@ public class ItemStackHandler implements IItemHandlerModifiable, INBTSerializabl
             int slot = itemTags.getInteger("Slot");
             if (slot >= 0 && slot < this.stacks.size()) {
                 ItemStack loadedStack = ItemStack.loadItemStackFromNBT(itemTags);
-                if (loadedStack != null && itemTags.hasKey("Count", Constants.NBT.TAG_INT)) {
-                    loadedStack.stackSize = itemTags.getInteger("Count");
+                if (loadedStack != null) {
+                    if (itemTags.hasKey("DankCount", Constants.NBT.TAG_INT)) {
+                        // New saves
+                        loadedStack.stackSize = itemTags.getInteger("DankCount");
+                    } else if (itemTags.hasKey("Count", Constants.NBT.TAG_INT)) {
+                        // Migrate old saves
+                        loadedStack.stackSize = itemTags.getInteger("Count");
+                    }
                 }
+
                 this.stacks.set(slot, loadedStack);
             }
         }

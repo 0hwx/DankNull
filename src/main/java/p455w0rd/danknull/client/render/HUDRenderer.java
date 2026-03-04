@@ -57,7 +57,7 @@ public class HUDRenderer {
         ItemStack selectedStack = ItemStack.loadItemStackFromNBT(itemTag);
         if (selectedStack == null) return;
 
-        int count = itemTag.getInteger("Count");
+        int count = itemTag.getInteger("DankCount");
         // Pull settings from the new DankSettings sub-compound
         NBTTagCompound settings = itemTag.getCompoundTag(DankNullHandler.NBT.DANK_SETTINGS);
         ItemPlacementMode pMode = ItemPlacementMode.VALUES[settings.getByte(DankNullHandler.NBT.PLACEMENT_MODE)];

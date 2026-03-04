@@ -333,7 +333,7 @@ public class DankNullHandler extends ItemStackHandler {
                 itemTag.setInteger("Slot", i);
                 this.stacks.get(i)
                     .writeToNBT(itemTag);
-                itemTag.setInteger("Count", stacks.get(i).stackSize);
+                itemTag.setInteger("DankCount", stacks.get(i).stackSize);
 
                 NBTTagCompound dankSettings = new NBTTagCompound();
                 dankSettings.setBoolean(NBT.OREDICT, oreDict.get(i));
@@ -370,8 +370,14 @@ public class DankNullHandler extends ItemStackHandler {
             int slot = itemTags.getInteger("Slot");
             if (slot >= 0 && slot < this.stacks.size()) {
                 ItemStack loadedStack = ItemStack.loadItemStackFromNBT(itemTags);
-                if (loadedStack != null && itemTags.hasKey("Count", Constants.NBT.TAG_INT)) {
-                    loadedStack.stackSize = itemTags.getInteger("Count");
+                if (loadedStack != null) {
+                    if (itemTags.hasKey("DankCount", Constants.NBT.TAG_INT)) {
+                        // New saves
+                        loadedStack.stackSize = itemTags.getInteger("DankCount");
+                    } else if (itemTags.hasKey("Count", Constants.NBT.TAG_INT)) {
+                        // Migrate old saves
+                        loadedStack.stackSize = itemTags.getInteger("Count");
+                    }
                 }
                 this.stacks.set(slot, loadedStack);
 
