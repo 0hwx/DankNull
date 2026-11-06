@@ -226,7 +226,9 @@ public class DankNullHandler extends ItemStackHandler {
     }
 
     public void setSelected(int slot) {
-        selected = Math.min(Math.max(slot, -1), getSlots() - 1);
+        int newSelected = Math.min(Math.max(slot, -1), getSlots() - 1);
+        if (newSelected == selected) return;
+        selected = newSelected;
         onContentsChanged(slot);
     }
 
